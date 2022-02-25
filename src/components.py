@@ -25,20 +25,21 @@ class gameplay :
 
     def calcClosestBuilding (self) :
         ## TODO : use bfs to improve complexity
+        def calcWeight (d) :
+            return max( abs(d.x) , abs(d.y) )
+        def ClosestFormat ( dis, buildingtype, n ) :
+            return { "dist": dis, "buildingtype": buildingtype, "n": n, "weight": calcWeight(dis) }
         for i in range(self.size.x) :
             for j in range(self.size.y) :
                 ## if no building exists, then townhall is the default (even if it does not exist)
                 dis = dist(i, j, self.buildings[TOWNHALL])
-                self.closestBuilding[i][j] = { "dist": dis, "buildingtype": TOWNHALL, "n": 0, "weight": abs(dis.x)+abs(dis.y) }
-                for i in range(len(self.buildings[HUT])):
-                    newdist = dist(i, j, self.buildings[HUT][i])
-                    if abs(newdist.x)+abs(newdist.y) < self.closestBuilding[i][j].weight :
-                    #if abs(newdist.x)+abs(newdist.y) < self.closestBuilding[i][j]["weight"] :
-                        self.closestBuilding[i][j] = { "dist": newdist, "buildingtype": HUT, "n": i, "weight": abs(newdist.x)+abs(newdist.y) }
-                for i in range(len(self.buildings[CANNON])):
-                    newdist = dist(i, j, self.buildings[CANNON][i])
-                    if abs(newdist.x)+abs(newdist.y) < self.closestBuilding[i][j].weight :
-                        self.closestBuilding[i][j] = { "dist": newdist, "buildingtype": CANNON, "n": i, "weight": abs(newdist.x)+abs(newdist.y) }
+                self.closestBuilding[i][j] = ClosestFormat( dis, TOWNHALL, 0 )
+                for buildingtype in [ HUT, CANNON ] :
+                    for i in range(len(self.buildings[buildingtype])):
+                        newdist = dist(i, j, self.buildings[buildingtype][i])
+                        if calcWeight(newdist) < self.closestBuilding[i][j].weight :
+                        #if calcWeight(newdist) < self.closestBuilding[i][j]["weight"] :
+                            self.closestBuilding[i][j] = ClosestFormat( newdist, buildingtype, i )
 
     def gameInit ( self, spawns, townhall_position, hut_positions, cannon_positions, wall_positions ) :
         self.spawns = spawns
@@ -164,14 +165,13 @@ class king (troop) :
                 for building in buildingtype :
                     building.attacked( self.damage )
 
-
 class barbarian (troop) :
     def __init__ ( self, position, ) :
         super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size )
     def move (self) :
         direction = game.closestBuilding[self.position.x][self.position.y].dist
-        newx, newy = self.position.x + math.copysign(1,direction.x) , self.position.y + math.copysign(1,direction.y)
+        newx , newy = self.position.x + math.copysign(1,direction.x) , self.position.y + math.copysign(1,direction.y)
         if not any( wall.position.x == newx and wall.position.y == newy for wall in game.walls ):
-            self.position.x, self.position.y = newx, newy
+            self.position.x , self.position.y = newx , newy
     def spawn_barbarian (self, location) :
         game.barbarians.append( barbarian(game.spawns[location]) )
