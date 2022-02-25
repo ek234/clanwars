@@ -4,7 +4,7 @@ from utils import dist
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import TOWNHALL, HUT, CANNON
 
-## TODO : collision detection
+## TODO : push object out incase of collision
 ## TODO : avoid overlap of buildings
 
 class gameplay :
@@ -61,6 +61,16 @@ class gameplay :
     def gameStart (self, location) :
         self.king = king(self.spawns[location], UP)
 
+    def isColliding ( self, obj ) :
+        for ele in [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls :
+            if obj.position.x + obj.size.x <= ele.position.x or \
+               obj.position.x >= ele.position.x + ele.size.x or \
+               obj.position.y + obj.size.y <= ele.position.y or \
+               obj.position.y >= ele.position.y + ele.size.y :
+                continue
+            return False
+        return True
+        
     def checkOver (self) :
         return \
                 all( building.health <= 0 for buildingtype in self.buildings for building in buildingtype ) or \
@@ -133,6 +143,12 @@ class troop :
     def attacked ( self, damage ) :
         self.health = max(0, self.health-damage)
         game.checkOver()
+    def move (self) :
+        direction = game.closestBuilding[self.position.x][self.position.y].dist
+        newx , newy = self.position.x + math.copysign(self.speed,direction.x) , self.position.y + math.copysign(self.speed,direction.y)
+        #if not any( wall.position.x == newx and wall.position.y == newy for wall in game.walls ):
+        if game.isColliding(self) == False :
+            self.position.x , self.position.y = newx , newy
     def print (self) :
         for i in range(self.size.x):
             for j in range(self.size.y):
@@ -160,18 +176,13 @@ class king (troop) :
             for wall in game.walls :
                 if ( wall.position.x == nextx and wall.position.y == nexty ) :
                     wall.attacked( self.damage )
-
             for buildingtype in game.buildings :
                 for building in buildingtype :
-                    building.attacked( self.damage )
+                    if ( building.position.x == nextx and building.position.y == nexty ) :
+                        building.attacked( self.damage )
 
 class barbarian (troop) :
     def __init__ ( self, position, ) :
         super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size )
-    def move (self) :
-        direction = game.closestBuilding[self.position.x][self.position.y].dist
-        newx , newy = self.position.x + math.copysign(1,direction.x) , self.position.y + math.copysign(1,direction.y)
-        if not any( wall.position.x == newx and wall.position.y == newy for wall in game.walls ):
-            self.position.x , self.position.y = newx , newy
-    def spawn_barbarian (self, location) :
+    def spawn (self, location) :
         game.barbarians.append( barbarian(game.spawns[location]) )
