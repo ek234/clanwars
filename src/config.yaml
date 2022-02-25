@@ -1,0 +1,49 @@
+display:
+  size:
+    x: 100
+    y: 80
+  size:
+    x: 4
+    y: 4
+
+townhall:
+  maxhealth: 100
+  size:
+    x: 4
+    y: 3
+
+hut:
+  maxhealth: 100
+  size:
+    x: 2
+    y: 2
+
+cannon:
+  maxhealth: 100
+  size:
+    x: 2
+    y: 1
+  range: 8
+  damage: 10
+
+wall:
+  maxhealth: 100
+  size:
+    x: 1
+    y: 1
+
+king:
+  maxhealth: 200
+  damage: 25
+  speed: 2
+  size:
+    x: 3
+    y: 2
+
+barbarian:
+  maxhealth: 40
+  damage: 15
+  speed: 1
+  size:
+    x: 2
+    y: 1
