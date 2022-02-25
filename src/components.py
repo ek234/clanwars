@@ -4,7 +4,6 @@ from utils import dist
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import TOWNHALL, HUT, CANNON
 
-## TODO : push object out incase of collision
 ## TODO : avoid overlap of buildings
 
 class gameplay :
@@ -147,8 +146,10 @@ class troop :
         direction = game.closestBuilding[self.position.x][self.position.y].dist
         newx , newy = self.position.x + math.copysign(self.speed,direction.x) , self.position.y + math.copysign(self.speed,direction.y)
         #if not any( wall.position.x == newx and wall.position.y == newy for wall in game.walls ):
-        if game.isColliding(self) == False :
-            self.position.x , self.position.y = newx , newy
+        while game.isColliding(self) :
+            newx = ( self.position.x + newx ) / 2
+            newy = ( self.position.y + newy ) / 2
+        self.position.x , self.position.y = newx , newy
     def print (self) :
         for i in range(self.size.x):
             for j in range(self.size.y):
@@ -193,8 +194,10 @@ class king (troop) :
             else :
                 raise RuntimeError("unknown direction")
 
-            if game.isColliding(self) == False :
-                self.position.x , self.position.y = nextx , nexty
+            while game.isColliding(self) :
+                nextx = ( self.position.x + nextx ) / 2
+                nexty = ( self.position.y + nexty ) / 2
+            self.position.x , self.position.y = nextx , nexty
 
 class barbarian (troop) :
     def __init__ ( self, position, ) :
