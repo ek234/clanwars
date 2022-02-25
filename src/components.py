@@ -180,6 +180,21 @@ class king (troop) :
                 for building in buildingtype :
                     if ( building.position.x == nextx and building.position.y == nexty ) :
                         building.attacked( self.damage )
+    def move (self) :
+            nextx,nexty = self.position.x,self.position.y
+            if self.direction == UP :
+                nexty -= self.speed
+            elif self.direction == RIGHT :
+                nextx += self.speed
+            elif self.direction == DOWN :
+                nexty += self.speed
+            elif self.direction == LEFT :
+                nextx -= self.speed
+            else :
+                raise RuntimeError("unknown direction")
+
+            if game.isColliding(self) == False :
+                self.position.x , self.position.y = nextx , nexty
 
 class barbarian (troop) :
     def __init__ ( self, position, ) :
