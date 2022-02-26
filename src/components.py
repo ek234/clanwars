@@ -89,8 +89,8 @@ class gameplay :
                sprity >= struct.position.y + struct.size.y or \
                struct.health <= 0 :
                 continue
-            return False
-        return True
+            return True
+        return False
 
     def gameloop (self, dt) :
         self.print()
