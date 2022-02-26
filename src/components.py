@@ -9,24 +9,25 @@ from utils import NOTSTARTED, INGAME, WON, LOST
 
 class gameplay :
 
-    def __init__ (self, size, unitsize, fps ) :
+    def __init__ (self, size, unitsize, fps, bgchar ) :
         self.size = size
         self.unitsize = unitsize
         self.fps = fps
+        self.defchar = bgchar
 
     def print (self) :
-        self.grid = [ [ [ [ '=' for _ in range(self.unitsize.y) ] for _ in range(self.unitsize.x) ] for _ in range(self.size.y) ] for _ in range(self.size.x) ]
+        self.grid = [ [ [ [ self.defchar for _ in range(self.unitsize.y) ] for _ in range(self.unitsize.x) ] for _ in range(self.size.y) ] for _ in range(self.size.x) ]
         for struct in [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls :
             if struct.health > 0 :
                 struct.print()
         for enemy in [ self.king ] + self.barbarians :
             if enemy != None :
                 enemy.print()
-        for i in range(self.size.x):
-            for j in range(self.size.y):
-                for ui in range(self.unitsize.x):
-                    for uj in range(self.unitsize.y):
-                        print( self.grid[i][j][ui][uj] )
+        for j in range(self.size.y*self.unitsize.y):
+            for i in range(self.size.x*self.unitsize.x):
+                #print(i,j)
+                print( self.grid[i//self.unitsize.x][j//self.unitsize.y][i%self.unitsize.x][j%self.unitsize.y], end='' )
+            print()
 
     def calcClosestBuilding (self) :
         ## TODO : use bfs to improve complexity
@@ -41,9 +42,8 @@ class gameplay :
                     for idx,building in enumerate(buildingtype) :
                         if building.health > 0 :
                             newdist = dist(i, j, building)
-                            if self.closestBuilding == None or \
-                               calcWeight(newdist) < self.closestBuilding[i][j].weight :
-                               #calcWeight(newdist) < self.closestBuilding[i][j]["weight"] :
+                            if self.closestBuilding[i][j] == None or \
+                                    calcWeight(newdist) < self.closestBuilding[i][j]["weight"] :
                                 self.closestBuilding[i][j] = ClosestFormat( newdist, buildingtype, idx )
 
     def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, wall_positions ) :
@@ -64,7 +64,7 @@ class gameplay :
         self.buildings[CANNON] = [ cannon(pos) for pos in cannon_positions ]
         self.walls = [ wall(pos) for pos in wall_positions ]
 
-        self.closestBuilding = []
+        self.closestBuilding = [ [ None for _ in range(self.size.y) ] for _ in range(self.size.x) ]
         self.calcClosestBuilding()
 
         self.king = None
@@ -105,16 +105,17 @@ class gameplay :
         self.endscreen(status)
         return status
 
-game = gameplay(display_size, display_unit_size, display_fps);
+game = gameplay(display_size, display_unit_size, display_fps, ' ');
 
 
 class building :
 
-    def __init__ ( self, health, position, size ) :
+    def __init__ ( self, health, position, size, defchar ) :
         self.health = health
         self.position = position
         self.size = size
-        self.unit = [ [ [ [ 'b' for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
+        self.defchar = defchar
+        self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
 
     def attacked ( self, damage ) :
         self.health -= damage
@@ -125,28 +126,30 @@ class building :
     def print (self) :
         if self.health > 0:
             for i in range(self.size.x):
-                for j in range(self.size.y):
-                    for ui in range(game.unitsize.x):
-                        for uj in range(game.unitsize.y):
-                            game.grid[self.position.x+i][self.position.y+j][ui][uj] = self.unit[i][j][ui][uj]
+                if self.position.x+i <= game.size.x :
+                    for j in range(self.size.y):
+                        if self.position.y+j <= game.size.y :
+                            for ui in range(game.unitsize.x):
+                                for uj in range(game.unitsize.y):
+                                    game.grid[self.position.x+i][self.position.y+j][ui][uj] = self.unit[i][j][ui][uj]
 
 
 class townhall (building) :
 
     def __init__ ( self, position ) :
-        super().__init__( townhall_maxhealth, position, townhall_size )
+        super().__init__( townhall_maxhealth, position, townhall_size, 'T' )
 
 
 class hut (building) :
 
     def __init__ ( self, position ) :
-        super().__init__( hut_maxhealth, position, hut_size )
+        super().__init__( hut_maxhealth, position, hut_size, 'H' )
 
 
 class cannon (building) :
 
     def __init__ ( self, position ) :
-        super().__init__( cannon_maxhealth, position, cannon_size )
+        super().__init__( cannon_maxhealth, position, cannon_size, 'C' )
         self.range = cannon_range
         self.damage = cannon_damage
 
@@ -163,18 +166,19 @@ class cannon (building) :
 class wall (building) :
 
     def __init__ ( self, position ) :
-        super().__init__( wall_maxhealth, position, wall_size )
+        super().__init__( wall_maxhealth, position, wall_size, 'W' )
 
 
 class troop :
 
-    def __init__ (self, position, health, damage, speed, size) :
+    def __init__ (self, position, health, damage, speed, size, defchar) :
         self.position = position
         self.health = health
         self.damage = damage
         self.speed = speed
         self.size = size
-        self.unit = [ [ [ [ 't' for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
+        self.defchar = defchar
+        self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
 
     def attacked ( self, damage ) :
         self.health = max(0, self.health-damage)
@@ -183,7 +187,7 @@ class troop :
     def move (self) :
         closest = game.closestBuilding[self.position.x][self.position.y]
         if closest != None :
-            direction = closest.dist
+            direction = closest["dist"]
             newx = self.position.x + math.copysign(self.speed,direction.x)
             newy = self.position.y + math.copysign(self.speed,direction.y)
             while game.isColliding(self) :
@@ -193,15 +197,17 @@ class troop :
 
     def print (self) :
         for i in range(self.size.x):
-            for j in range(self.size.y):
-                for ui in range(game.unitsize.x):
-                    for uj in range(game.unitsize.y):
-                        game.grid[self.position.x][self.position.y][ui][uj] = self.unit[i][j][ui][uj]
+            if self.position.x+i <= game.size.x :
+                for j in range(self.size.y):
+                    if self.position.y+j <= game.size.y :
+                        for ui in range(game.unitsize.x):
+                            for uj in range(game.unitsize.y):
+                                game.grid[self.position.x+i][self.position.y+j][ui][uj] = self.unit[i][j][ui][uj]
 
 class king (troop) :
 
     def __init__ ( self, position, direction ) :
-        super().__init__( position, king_maxhealth, king_damage, king_speed, king_size )
+        super().__init__( position, king_maxhealth, king_damage, king_speed, king_size, 'K' )
         self.direction = direction
 
     def attack ( self ) :
@@ -242,7 +248,7 @@ class king (troop) :
 class barbarian (troop) :
 
     def __init__ ( self, position, ) :
-        super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size )
+        super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b' )
 
     def attack (self) :
         closest = game.closestBuilding[self.position.x][self.position.y]
@@ -251,7 +257,7 @@ class barbarian (troop) :
                 # closest building must have more than 0 health
                 game.buildings[closest.buildingtype][closest.n].attacked( self.damage )
             else :
-                nextx , nexty = self.position.x + math.copysign(1,closest.dist.x) , self.position.y + math.copysign(1,closest.dist.y)
+                nextx , nexty = self.position.x + math.copysign(1,closest["dist"].x) , self.position.y + math.copysign(1,closest["dist"].y)
                 for wall in game.walls :
                     if wall.health > 0 and wall.position.x == nextx and wall.position.y == nexty :
                         wall.attacked( self.damage )
