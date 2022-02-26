@@ -5,15 +5,14 @@ from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
 
-## TODO : avoid overlap of buildings
 ## TODO : make unit sprites for each
-
 
 class gameplay :
 
-    def __init__ (self, size, unitsize ) :
+    def __init__ (self, size, unitsize, fps ) :
         self.size = size
         self.unitsize = unitsize
+        self.fps = fps
 
     def print (self) :
         self.grid = [ [ [ [ '=' for _ in range(self.unitsize.y) ] for _ in range(self.unitsize.x) ] for _ in range(self.size.y) ] for _ in range(self.size.x) ]
@@ -106,7 +105,7 @@ class gameplay :
         self.endscreen(status)
         return status
 
-game = gameplay(display_size, display_unit_size);
+game = gameplay(display_size, display_unit_size, display_fps);
 
 
 class building :

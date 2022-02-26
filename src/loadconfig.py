@@ -6,6 +6,7 @@ with open("config.yaml", 'r') as data:
 
 display_size = xy( config["display"]["size"]["x"], config["display"]["size"]["y"] )
 display_unit_size = xy( config["display"]["size"]["x"], config["display"]["unitsize"]["y"] )
+display_fps = config["display"]["fps"]
 
 townhall_maxhealth = config["townhall"]["maxhealth"]
 townhall_size = xy( config["townhall"]["size"]["x"], config["townhall"]["size"]["y"] )
