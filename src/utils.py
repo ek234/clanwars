@@ -1,6 +1,9 @@
+num_buildingtype = 3
+
 # enum
 UP, RIGHT, DOWN, LEFT = range(4)
-TOWNHALL, HUT, CANNON = range(3)
+TOWNHALL, HUT, CANNON = range(num_buildingtype)
+NOTSTARTED, INGAME, WON, LOST = range(-1,3)
 
 class xy :
     def __init__ (self, x, y) :
