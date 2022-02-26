@@ -31,6 +31,8 @@ while gameState is INGAME :
             game.king.move(inp, dt)
     elif inp in {'1','2','3'} :
         game.spawn_barbarian(int(inp)-1)
+    elif inp == 'q' :
+        break
 
     currTime = time.time()
     dt = currTime - prevTime
