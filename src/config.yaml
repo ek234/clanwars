@@ -2,9 +2,9 @@ display:
   size:
     x: 100
     y: 80
-  size:
-    x: 4
-    y: 4
+  unitsize:
+    x: 1
+    y: 1
 
 townhall:
   maxhealth: 100
