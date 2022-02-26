@@ -41,14 +41,14 @@ class gameplay :
             return { "dist": dis, "building": building, "weight": calcWeight(dis) }
         for i in range(self.size.x) :
             for j in range(self.size.y) :
-                self.closestBuilding[i][j] = None
+                self.closestBuilding[i][j] = {}
                 for buildingtype in self.buildings :
                     for building in buildingtype :
                         if building.health > 0 :
                             newdist = dist(i, j, building)
-                            if self.closestBuilding[i][j] == None or \
+                            if self.closestBuilding[i][j] == {} or \
                                     calcWeight(newdist) < self.closestBuilding[i][j]["weight"] :
-                                self.closestBuilding[i][j] = ClosestFormat( newdist, building )
+                                        self.closestBuilding[i][j] = ClosestFormat( newdist, building )
 
     def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, wall_positions ) :
         if len(spawns) != 3 :
@@ -68,7 +68,7 @@ class gameplay :
         self.buildings[CANNON] = [ cannon(pos) for pos in cannon_positions ]
         self.walls = [ wall(pos) for pos in wall_positions ]
 
-        self.closestBuilding = [ [ None for _ in range(self.size.y) ] for _ in range(self.size.x) ]
+        self.closestBuilding = [ [ {} for _ in range(self.size.y) ] for _ in range(self.size.x) ]
         self.calcClosestBuilding()
 
         self.king = None
@@ -200,7 +200,7 @@ class troop :
 
     def move (self, dt) :
         closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
-        if closest != None :
+        if closest != {} :
             direction = closest["dist"]
             newx = self.position.x + math.copysign(self.speed*dt,direction.x)
             newy = self.position.y + math.copysign(self.speed*dt,direction.y)
@@ -283,7 +283,7 @@ class barbarian (troop) :
 
     def attack (self) :
         closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
-        if closest != None :
+        if closest != {} :
             if closest["weight"] == 0 :
                 # closest building must have more than 0 health
                 return closest["building"].attacked( self.damage )
