@@ -6,6 +6,7 @@ from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
 
 ## TODO : make unit sprites for each
+## TODO : correct collision fn and collision bounce back
 
 class gameplay :
 
@@ -33,18 +34,18 @@ class gameplay :
         ## TODO : use bfs to improve complexity
         def calcWeight (d) :
             return max( abs(d.x) , abs(d.y) )
-        def ClosestFormat ( dis, buildingtype, n ) :
-            return { "dist": dis, "buildingtype": buildingtype, "n": n, "weight": calcWeight(dis) }
+        def ClosestFormat ( dis, building ) :
+            return { "dist": dis, "building": building, "weight": calcWeight(dis) }
         for i in range(self.size.x) :
             for j in range(self.size.y) :
                 self.closestBuilding[i][j] = None
                 for buildingtype in self.buildings :
-                    for idx,building in enumerate(buildingtype) :
+                    for building in buildingtype :
                         if building.health > 0 :
                             newdist = dist(i, j, building)
                             if self.closestBuilding[i][j] == None or \
                                     calcWeight(newdist) < self.closestBuilding[i][j]["weight"] :
-                                self.closestBuilding[i][j] = ClosestFormat( newdist, buildingtype, idx )
+                                self.closestBuilding[i][j] = ClosestFormat( newdist, building )
 
     def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, wall_positions ) :
         if len(spawns) != 3 :
@@ -76,12 +77,12 @@ class gameplay :
     def spawn_barbarian (self, location) :
         self.barbarians.append( barbarian(self.spawns[location]) )
 
-    def isColliding ( self, sprite ) :
+    def isColliding ( self, spritx, sprity ) :
         for struct in [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls :
-            if sprite.position.x + sprite.size.x <= struct.position.x or \
-               sprite.position.x >= struct.position.x + struct.size.x or \
-               sprite.position.y + sprite.size.y <= struct.position.y or \
-               sprite.position.y >= struct.position.y + struct.size.y or \
+            if spritx + spritx <= struct.position.x or \
+               spritx >= struct.position.x + struct.size.x or \
+               sprity + sprity <= struct.position.y or \
+               sprity >= struct.position.y + struct.size.y or \
                struct.health <= 0 :
                 continue
             return False
@@ -190,10 +191,12 @@ class troop :
             direction = closest["dist"]
             newx = self.position.x + math.copysign(self.speed,direction.x)
             newy = self.position.y + math.copysign(self.speed,direction.y)
-            while game.isColliding(self) :
-                newx = ( self.position.x + newx ) / 2
-                newy = ( self.position.y + newy ) / 2
-            self.position.x , self.position.y = newx , newy
+            ctr = 0
+            while game.isColliding(newx,newy) and ctr < 1000 :
+                newx = ( self.position.x + newx ) // 2
+                newy = ( self.position.y + newy ) // 2
+                ctr += 1
+            self.position.x , self.position.y = int(newx) , int(newy)
 
     def print (self) :
         for i in range(self.size.x):
@@ -239,10 +242,12 @@ class king (troop) :
                 nextx -= self.speed
             else :
                 raise RuntimeError("unknown direction")
-            while game.isColliding(self) :
-                nextx = ( self.position.x + nextx ) / 2
-                nexty = ( self.position.y + nexty ) / 2
-            self.position.x , self.position.y = nextx , nexty
+            ctr = 0
+            while game.isColliding(nextx,nexty) and ctr < 1000 :
+                nextx = ( self.position.x + nextx ) // 2
+                nexty = ( self.position.y + nexty ) // 2
+                ctr += 1
+            self.position.x , self.position.y = int(nextx) , int(nexty)
             self.direction = towards
 
 class barbarian (troop) :
@@ -253,9 +258,9 @@ class barbarian (troop) :
     def attack (self) :
         closest = game.closestBuilding[self.position.x][self.position.y]
         if closest != None :
-            if closest.weight == 0 :
+            if closest["weight"] == 0 :
                 # closest building must have more than 0 health
-                game.buildings[closest.buildingtype][closest.n].attacked( self.damage )
+                closest["building"].attacked( self.damage )
             else :
                 nextx , nexty = self.position.x + math.copysign(1,closest["dist"].x) , self.position.y + math.copysign(1,closest["dist"].y)
                 for wall in game.walls :
