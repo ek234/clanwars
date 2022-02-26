@@ -4,6 +4,9 @@ from utils import dist
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
+from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST
+
+coloramaInit()
 
 ## TODO : make unit sprites for each
 ## TODO : correct collision fn and collision bounce back
@@ -27,8 +30,7 @@ class gameplay :
                 enemy.print()
         for j in range(self.size.y*self.unitsize.y):
             for i in range(self.size.x*self.unitsize.x):
-                #print(i,j)
-                print( self.grid[i//self.unitsize.x][j//self.unitsize.y][i%self.unitsize.x][j%self.unitsize.y], end='' )
+                print( BG.WHITE + self.grid[i//self.unitsize.x][j//self.unitsize.y][i%self.unitsize.x][j%self.unitsize.y] + ST.RESET_ALL, end='' )
             print()
 
     def calcClosestBuilding (self) :
@@ -118,6 +120,7 @@ class building :
 
     def __init__ ( self, health, position, size, defchar ) :
         self.health = health
+        self.maxhealth = health
         self.position = position
         self.size = size
         self.defchar = defchar
@@ -131,13 +134,18 @@ class building :
 
     def print (self) :
         if self.health > 0:
+            color = FG.GREEN
+            if self.health < self.maxhealth * 0.2 :
+                color = FG.RED
+            elif self.health < self.maxhealth * 0.5 :
+                color = FG.YELLOW
             for i in range(self.size.x):
                 if self.position.x+i <= game.size.x :
                     for j in range(self.size.y):
                         if self.position.y+j <= game.size.y :
                             for ui in range(game.unitsize.x):
                                 for uj in range(game.unitsize.y):
-                                    game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = self.unit[i][j][ui][uj]
+                                    game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = color + self.unit[i][j][ui][uj] + ST.RESET_ALL
 
 
 class townhall (building) :
@@ -179,6 +187,7 @@ class troop :
     def __init__ (self, position, health, damage, speed, size, defchar) :
         self.position = position
         self.health = health
+        self.maxhealth = health
         self.damage = damage
         self.speed = speed
         self.size = size
@@ -203,13 +212,24 @@ class troop :
             self.position.x , self.position.y = newx , newy
 
     def print (self) :
+        color = FG.CYAN
+        if self.health <= 0 :
+            color = FG.RED + ST.BRIGHT
+        elif self.health < self.maxhealth * 0.2 :
+            color = FG.MAGENTA
+        elif self.health < self.maxhealth * 0.4 :
+            color = FG.LIGHTRED_EX
+        elif self.health < self.maxhealth * 0.6 :
+            color = FG.LIGHTMAGENTA_EX
+        elif self.health < self.maxhealth * 0.8 :
+            color = FG.BLUE
         for i in range(self.size.x):
             if self.position.x+i <= game.size.x :
                 for j in range(self.size.y):
                     if self.position.y+j <= game.size.y :
                         for ui in range(game.unitsize.x):
                             for uj in range(game.unitsize.y):
-                                game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = self.unit[i][j][ui][uj]
+                                game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = color + self.unit[i][j][ui][uj] + ST.RESET_ALL
 
 class king (troop) :
 
@@ -245,6 +265,9 @@ class king (troop) :
                 nextx -= self.speed*dt
             else :
                 raise RuntimeError("unknown direction")
+            #print(towards)
+            #print(self.position.x , self.position.y)
+            #print(nextx, nexty)
             ctr = 0
             while game.isColliding(nextx,nexty) and ctr < 1000 :
                 nextx = ( self.position.x + nextx ) / 2
