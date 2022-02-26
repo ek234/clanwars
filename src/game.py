@@ -2,8 +2,9 @@ from components import game
 import time
 from initialState import spawns, townhalls_at, huts_at, cannons_at, walls_at
 import os
+from utils import UP, RIGHT, DOWN, LEFT
 from utils import NOTSTARTED, INGAME, WON, LOST
-from input import Get, input_to
+from getinput import Get, input_to
 
 ## TODO : avoid overlap of buildings
 
@@ -11,27 +12,39 @@ game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at )
 
 gameState = game.gameStart(1)
 
-prevTime = currTime = time.time()
-while gameState is INGAME:
+if gameState == NOTSTARTED :
+    time.sleep(0.1)
+currTime = time.time()
+while gameState is INGAME :
+
     prevTime = currTime
     currTime = time.time()
     dt = currTime - prevTime
-    inp = input_to(Get())
+    waitTime = max(1./game.fps - dt, 0.1)
+
+    inp = input_to(Get(), waitTime)
     if inp == " " :
         if game.king != None :
             game.king.attack()
-    elif inp in {'w','a','s','d'} :
+    elif inp in { UP, LEFT, DOWN, RIGHT } :
         if game.king != None :
             game.king.move(inp, dt)
     elif inp in {'1','2','3'} :
         game.spawn_barbarian(int(inp)-1)
-    sleepTime = 1./game.fps - dt
-    if sleepTime > 0 :
-        time.sleep(sleepTime)
+
+    currTime = time.time()
+    dt = currTime - prevTime
+    waitTime = 1./game.fps - dt
+    if waitTime > 0 :
+        time.sleep(waitTime)
+
     os.system('clear')
     gameState = game.gameloop(dt)
 
-print(gameState)
+if gameState == WON :
+    print("you win")
+elif gameState == LOST :
+    print("better luck next time")
 
 #game.spawn_barbarian()
 #king attack
