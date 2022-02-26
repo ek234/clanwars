@@ -81,14 +81,15 @@ class gameplay :
     def spawn_barbarian (self, location) :
         self.barbarians.append( barbarian(self.spawns[location]) )
 
-    def isColliding ( self, spritx, sprity ) :
+    def isColliding ( self, sprite ) :
         for struct in [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls :
-            if spritx + spritx <= struct.position.x or \
-               spritx >= struct.position.x + struct.size.x or \
-               sprity + sprity <= struct.position.y or \
-               sprity >= struct.position.y + struct.size.y or \
+            if sprite.position.x + sprite.size.x <= struct.position.x or \
+               sprite.position.x >= struct.position.x + struct.size.x or \
+               sprite.position.y + sprite.size.y <= struct.position.y or \
+               sprite.position.y >= struct.position.y + struct.size.y or \
                struct.health <= 0 :
                 continue
+            print(struct.position.x, struct.position.y)
             return True
         return False
 
@@ -199,17 +200,17 @@ class troop :
         return game.checkOver()
 
     def move (self, dt) :
-        closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
+        oldx , oldy = self.position.x , self.position.y
+        closest = game.closestBuilding[int(oldx)][int(oldy)]
         if closest != {} :
             direction = closest["dist"]
-            newx = self.position.x + math.copysign(self.speed*dt,direction.x)
-            newy = self.position.y + math.copysign(self.speed*dt,direction.y)
+            self.position.x += math.copysign(self.speed*dt,direction.x)
+            self.position.y += math.copysign(self.speed*dt,direction.y)
             ctr = 0
-            while game.isColliding(newx,newy) and ctr < 1000 :
-                newx = ( self.position.x + newx ) / 2
-                newy = ( self.position.y + newy ) / 2
+            while game.isColliding(self) and ctr < 1000 :
+                self.position.x = ( self.position.x + oldx ) / 2
+                self.position.y = ( self.position.y + oldy ) / 2
                 ctr += 1
-            self.position.x , self.position.y = newx , newy
 
     def print (self) :
         color = FG.CYAN
@@ -254,26 +255,22 @@ class king (troop) :
                 return struct.attacked( self.damage )
 
     def move (self, towards, dt) :
-            nextx , nexty = self.position.x , self.position.y
+            oldx , oldy = self.position.x , self.position.y
             if towards == UP :
-                nexty -= self.speed*dt
+                self.position.y -= self.speed*dt
             elif towards == RIGHT :
-                nextx += self.speed*dt
+                self.position.x += self.speed*dt
             elif towards == DOWN :
-                nexty += self.speed*dt
+                self.position.y += self.speed*dt
             elif towards == LEFT :
-                nextx -= self.speed*dt
+                self.position.x -= self.speed*dt
             else :
                 raise RuntimeError("unknown direction")
-            #print(towards)
-            #print(self.position.x , self.position.y)
-            #print(nextx, nexty)
             ctr = 0
-            while game.isColliding(nextx,nexty) and ctr < 1000 :
-                nextx = ( self.position.x + nextx ) / 2
-                nexty = ( self.position.y + nexty ) / 2
+            while game.isColliding(self) and ctr < 1000 :
+                self.position.x = ( self.position.x + oldx ) / 2
+                self.position.y = ( self.position.y + oldy ) / 2
                 ctr += 1
-            self.position.x , self.position.y = nextx , nexty
             self.direction = towards
 
 class barbarian (troop) :
