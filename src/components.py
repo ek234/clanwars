@@ -7,6 +7,7 @@ from utils import NOTSTARTED, INGAME, WON, LOST
 
 ## TODO : make unit sprites for each
 ## TODO : correct collision fn and collision bounce back
+## TODO : use dt
 
 class gameplay :
 
@@ -73,6 +74,7 @@ class gameplay :
 
     def gameStart (self, location) :
         self.king = king(self.spawns[location], UP)
+        return game.checkOver()
 
     def spawn_barbarian (self, location) :
         self.barbarians.append( barbarian(self.spawns[location]) )
@@ -87,14 +89,18 @@ class gameplay :
                 continue
             return False
         return True
-        
-    def endscreen (self,status) :
-        ## TODO : make endscreens
-        if status is WON :
-            print("gg")
-        elif status is LOST :
-            print("better luck next time")
 
+    def gameloop (self, dt) :
+        self.print()
+        for barbarian_ in self.barbarians :
+            if barbarian_.health > 0 :
+                barbarian_.attack()
+                barbarian_.move(dt)
+        for cannon_ in self.buildings[CANNON] :
+            if cannon_.health > 0 :
+                cannon_.shoot()
+        return self.checkOver()
+        
     def checkOver (self) :
         status = INGAME
         if self.king is None :
@@ -103,7 +109,6 @@ class gameplay :
             status = LOST
         elif all( building.health <= 0 for buildingtype in self.buildings for building in buildingtype ) :
                 status = WON
-        self.endscreen(status)
         return status
 
 game = gameplay(display_size, display_unit_size, display_fps, ' ');
@@ -122,7 +127,7 @@ class building :
         self.health -= damage
         if self.health <= 0 :
             game.calcClosestBuilding()
-            game.checkOver()
+            return game.checkOver()
 
     def print (self) :
         if self.health > 0:
@@ -132,7 +137,7 @@ class building :
                         if self.position.y+j <= game.size.y :
                             for ui in range(game.unitsize.x):
                                 for uj in range(game.unitsize.y):
-                                    game.grid[self.position.x+i][self.position.y+j][ui][uj] = self.unit[i][j][ui][uj]
+                                    game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = self.unit[i][j][ui][uj]
 
 
 class townhall (building) :
@@ -160,8 +165,7 @@ class cannon (building) :
             return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
         for enemy in [ game.king ] + game.barbarians :
             if enemy != None and enemy.health > 0 and inrange ( enemy.position ) :
-                enemy.attacked(self.damage)
-                break
+                return enemy.attacked(self.damage)
 
 
 class wall (building) :
@@ -183,20 +187,20 @@ class troop :
 
     def attacked ( self, damage ) :
         self.health = max(0, self.health-damage)
-        game.checkOver()
+        return game.checkOver()
 
-    def move (self) :
-        closest = game.closestBuilding[self.position.x][self.position.y]
+    def move (self, dt) :
+        closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
         if closest != None :
             direction = closest["dist"]
-            newx = self.position.x + math.copysign(self.speed,direction.x)
-            newy = self.position.y + math.copysign(self.speed,direction.y)
+            newx = self.position.x + math.copysign(self.speed*dt,direction.x)
+            newy = self.position.y + math.copysign(self.speed*dt,direction.y)
             ctr = 0
             while game.isColliding(newx,newy) and ctr < 1000 :
-                newx = ( self.position.x + newx ) // 2
-                newy = ( self.position.y + newy ) // 2
+                newx = ( self.position.x + newx ) / 2
+                newy = ( self.position.y + newy ) / 2
                 ctr += 1
-            self.position.x , self.position.y = int(newx) , int(newy)
+            self.position.x , self.position.y = newx , newy
 
     def print (self) :
         for i in range(self.size.x):
@@ -205,7 +209,7 @@ class troop :
                     if self.position.y+j <= game.size.y :
                         for ui in range(game.unitsize.x):
                             for uj in range(game.unitsize.y):
-                                game.grid[self.position.x+i][self.position.y+j][ui][uj] = self.unit[i][j][ui][uj]
+                                game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = self.unit[i][j][ui][uj]
 
 class king (troop) :
 
@@ -214,7 +218,7 @@ class king (troop) :
         self.direction = direction
 
     def attack ( self ) :
-        nextx,nexty = self.position.x,self.position.y
+        nextx,nexty = int(self.position.x),int(self.position.y)
         if self.direction == UP :
             nexty -= 1
         elif self.direction == RIGHT :
@@ -227,27 +231,26 @@ class king (troop) :
             raise RuntimeError("unknown direction")
         for struct in [ building for buildingtype in game.buildings for building in buildingtype ] + game.walls :
             if struct.health > 0 and struct.position.x == nextx and struct.position.y == nexty :
-                struct.attacked( self.damage )
-                break
+                return struct.attacked( self.damage )
 
-    def move (self, towards) :
+    def move (self, towards, dt) :
             nextx , nexty = self.position.x , self.position.y
             if towards == UP :
-                nexty -= self.speed
+                nexty -= self.speed*dt
             elif towards == RIGHT :
-                nextx += self.speed
+                nextx += self.speed*dt
             elif towards == DOWN :
-                nexty += self.speed
+                nexty += self.speed*dt
             elif towards == LEFT :
-                nextx -= self.speed
+                nextx -= self.speed*dt
             else :
                 raise RuntimeError("unknown direction")
             ctr = 0
             while game.isColliding(nextx,nexty) and ctr < 1000 :
-                nextx = ( self.position.x + nextx ) // 2
-                nexty = ( self.position.y + nexty ) // 2
+                nextx = ( self.position.x + nextx ) / 2
+                nexty = ( self.position.y + nexty ) / 2
                 ctr += 1
-            self.position.x , self.position.y = int(nextx) , int(nexty)
+            self.position.x , self.position.y = nextx , nexty
             self.direction = towards
 
 class barbarian (troop) :
@@ -256,13 +259,14 @@ class barbarian (troop) :
         super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b' )
 
     def attack (self) :
-        closest = game.closestBuilding[self.position.x][self.position.y]
+        closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
         if closest != None :
             if closest["weight"] == 0 :
                 # closest building must have more than 0 health
-                closest["building"].attacked( self.damage )
+                return closest["building"].attacked( self.damage )
             else :
-                nextx , nexty = self.position.x + math.copysign(1,closest["dist"].x) , self.position.y + math.copysign(1,closest["dist"].y)
+                nextx = int( self.position.x + math.copysign(1,closest["dist"].x) )
+                nexty = int( self.position.y + math.copysign(1,closest["dist"].y) )
                 for wall in game.walls :
                     if wall.health > 0 and wall.position.x == nextx and wall.position.y == nexty :
-                        wall.attacked( self.damage )
+                        return wall.attacked( self.damage )
