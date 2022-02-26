@@ -5,7 +5,7 @@ with open("config.yaml", 'r') as data:
     config = yaml.safe_load(data)
 
 display_size = xy( config["display"]["size"]["x"], config["display"]["size"]["y"] )
-display_unit_size = xy( config["display"]["size"]["x"], config["display"]["unitsize"]["y"] )
+display_unit_size = xy( config["display"]["unitsize"]["x"], config["display"]["unitsize"]["y"] )
 display_fps = config["display"]["fps"]
 
 townhall_maxhealth = config["townhall"]["maxhealth"]
