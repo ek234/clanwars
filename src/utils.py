@@ -1,7 +1,7 @@
 num_buildingtype = 3
 
 # enum
-UP, RIGHT, DOWN, LEFT = range(4)
+UP, LEFT, DOWN, RIGHT = 'w', 'a', 's', 'd'
 TOWNHALL, HUT, CANNON = range(num_buildingtype)
 NOTSTARTED, INGAME, WON, LOST = range(-1,3)
 
