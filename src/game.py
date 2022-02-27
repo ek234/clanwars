@@ -1,7 +1,6 @@
 from components import game
 import time
 from initialState import spawns, townhalls_at, huts_at, cannons_at, walls_at
-import os
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import NOTSTARTED, INGAME, WON, LOST
 from getinput import Get, input_to
@@ -40,7 +39,6 @@ while gameState is INGAME :
     if waitTime > 0 :
         time.sleep(waitTime)
 
-    os.system('clear')
     gameState = game.gameloop(dt)
 
 if gameState == WON :

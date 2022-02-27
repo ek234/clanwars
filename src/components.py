@@ -5,13 +5,16 @@ from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
 from utils import xy, attack_region
-from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST
+from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST, ansi
+
+DEBUG = False
 
 coloramaInit()
 
 ## TODO : make unit sprites for each
 ## TODO : correct collision fn and collision bounce back
-## TODO : use dt
+## TODO : fix glitch that lets King and troops through structures due to dt being too large
+## TODO : make barbarian speed little random
 
 class gameplay :
 
@@ -29,14 +32,16 @@ class gameplay :
         for enemy in [ self.king ] + self.barbarians :
             if enemy != None :
                 enemy.print()
+
+        # clear screen
+        print(ansi.clear_screen())
         for j in range(self.size.y*self.unitsize.y):
             for i in range(self.size.x*self.unitsize.x):
                 char = self.grid[i//self.unitsize.x][j//self.unitsize.y][i%self.unitsize.x][j%self.unitsize.y]
-                if char == ' ' :
-                    if self.closestBuilding != {} :
-                        dire = self.closestBuilding[i//self.unitsize.x][j//self.unitsize.y]["dist"]
-                        dire = int(cmp(dire.x,0)*3 + cmp(dire.y,0))
-                        char = "·↓↗→↘↖←↙↑"[dire]
+                if char == ' ' and self.closestBuilding[i//self.unitsize.x][j//self.unitsize.y] != {} and DEBUG :
+                    dire = self.closestBuilding[i//self.unitsize.x][j//self.unitsize.y]["dist"]
+                    dire = int(cmp(dire.x,0)*3 + cmp(dire.y,0))
+                    char = "·↓↗→↘↖←↙↑"[dire]
                 print( char + ST.RESET_ALL, end='' )
             print()
 
@@ -108,7 +113,6 @@ class gameplay :
         return False
 
     def gameloop (self, dt) :
-        self.print()
         for barbarian_ in self.barbarians :
             if barbarian_.health > 0 :
                 barbarian_.attack()
@@ -116,6 +120,7 @@ class gameplay :
         for cannon_ in self.buildings[CANNON] :
             if cannon_.health > 0 :
                 cannon_.shoot()
+        self.print()
         return self.checkOver()
         
     def checkOver (self) :
@@ -125,7 +130,7 @@ class gameplay :
         elif all( barbarian_.health <= 0 for barbarian_ in self.barbarians ) and self.king.health <= 0 :
             status = LOST
         elif all( building.health <= 0 for buildingtype in self.buildings for building in buildingtype ) :
-                status = WON
+            status = WON
         return status
 
 game = gameplay(display_size, display_unit_size, display_fps, ' ');
@@ -214,19 +219,23 @@ class troop :
         return game.checkOver()
 
     def move (self, dt) :
-        oldx , oldy = self.position.x , self.position.y
-        closest = game.closestBuilding[int(oldx)][int(oldy)]
-        if closest != {} :
-            direction = closest["dist"]
-            self.position.x += self.speed*dt * cmp(direction.x,0)
-            self.position.y += self.speed*dt * cmp(direction.y,0)
-            ctr = 0
-            while game.isColliding(self) != False and ctr < 1000 :
-                self.position.x = ( self.position.x + oldx ) / 2
-                self.position.y = ( self.position.y + oldy ) / 2
-                ctr += 1
-            self.position.x = self.position.x % game.size.x
-            self.position.y = self.position.y % game.size.y
+        if self.health > 0 :
+            closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
+            if closest != {} :
+                direction = closest["dist"]
+                self.position.x += self.speed*dt * cmp(direction.x,0)
+                self.position.y += self.speed*dt * cmp(direction.y,0)
+                if game.isColliding(self) != False :
+                    if direction.x != 0 :
+                        self.position.x = int(self.position.x)
+                    if direction.y != 0 :
+                        self.position.y = int(self.position.y)
+                    for _ in range(9) :
+                    # max iterations = 9 to avoid infi loop
+                        if game.isColliding(self) == False :
+                            break
+                        self.position.x -= cmp(direction.x,0)
+                        self.position.y -= cmp(direction.y,0)
 
     def print (self) :
         color = FG.CYAN
@@ -255,53 +264,60 @@ class king (troop) :
         self.direction = direction
 
     def attack ( self ) :
-        regposx = self.position.x
-        regposy = self.position.y
-        regsizx = self.size.x
-        regsizy = self.size.y
-        if self.direction == UP :
-            regposy -= 1
-            regsizy = 1
-        elif self.direction == LEFT :
-            regposx -= 1
-            regsizx = 1
-        elif self.direction == DOWN :
-            regposy += self.size.y
-            regsizy = 1
-        elif self.direction == RIGHT :
-            regposx += self.size.x
-            regsizx = 1
-        else :
-            raise RuntimeError("unknown direction")
+        if self.health > 0 :
+            regposx = self.position.x
+            regposy = self.position.y
+            regsizx = self.size.x
+            regsizy = self.size.y
+            if self.direction == UP :
+                regposy -= 1
+                regsizy = 1
+            elif self.direction == LEFT :
+                regposx -= 1
+                regsizx = 1
+            elif self.direction == DOWN :
+                regposy += self.size.y
+                regsizy = 1
+            elif self.direction == RIGHT :
+                regposx += self.size.x
+                regsizx = 1
+            else :
+                raise RuntimeError("unknown direction")
 
-        region = attack_region(
-                xy(int(regposx) , int(regposy)),
-                xy(int(regsizx) , int(regsizy))
-        )
-        attackee = game.isColliding(region)
-        if attackee == False :
-            return attackee
-        return attackee.attacked( self.damage )
+            region = attack_region(
+                    xy(int(regposx) , int(regposy)),
+                    xy(int(regsizx) , int(regsizy))
+            )
+            attackee = game.isColliding(region)
+            if attackee == False :
+                return attackee
+            return attackee.attacked( self.damage )
 
     def move (self, towards, dt) :
+        if self.health > 0 :
             oldx , oldy = self.position.x , self.position.y
             if towards == UP :
                 self.position.y -= self.speed*dt
-            elif towards == RIGHT :
-                self.position.x += self.speed*dt
-            elif towards == DOWN :
-                self.position.y += self.speed*dt
             elif towards == LEFT :
                 self.position.x -= self.speed*dt
+            elif towards == DOWN :
+                self.position.y += self.speed*dt
+            elif towards == RIGHT :
+                self.position.x += self.speed*dt
             else :
                 raise RuntimeError("unknown direction")
-            ctr = 0
-            while game.isColliding(self) != False and ctr < 1000 :
-                self.position.x = ( self.position.x + oldx ) / 2
-                self.position.y = ( self.position.y + oldy ) / 2
-                ctr += 1
-            self.position.x = self.position.x % game.size.x
-            self.position.y = self.position.y % game.size.y
+
+            if game.isColliding(self) != False :
+                if self.position.x != oldx :
+                    self.position.x = int(self.position.x)
+                if self.position.y != oldy :
+                    self.position.y = int(self.position.y)
+            for _ in range(9) :
+                # max iterations = 9 to avoid infi loop
+                if game.isColliding(self) == False :
+                    break
+                self.position.x -= cmp( self.position.x , oldx )
+                self.position.y -= cmp( self.position.y , oldy )
             self.direction = towards
 
 class barbarian (troop) :
@@ -310,18 +326,19 @@ class barbarian (troop) :
         super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b' )
 
     def attack (self) :
-        # the region around the troop - the area that the troop can damage
-        regposx = self.position.x - 1
-        regposy = self.position.y - 1
-        regsizx = self.size.x + 2
-        regsizy = self.size.y + 2
+        if self.health > 0 :
+            # the region around the troop - the area that the troop can damage
+            regposx = self.position.x - 1
+            regposy = self.position.y - 1
+            regsizx = self.size.x + 2
+            regsizy = self.size.y + 2
 
-        region = attack_region(
-                xy(int(regposx) , int(regposy)),
-                xy(int(regsizx) , int(regsizy))
-        )
-        # buildings have more priority than walls so they are checked first
-        attackee = game.isColliding(region)
-        if attackee == False :
-            return attackee
-        return attackee.attacked( self.damage )
+            region = attack_region(
+                    xy(int(regposx) , int(regposy)),
+                    xy(int(regsizx) , int(regsizy))
+            )
+            # buildings have more priority than walls so they are checked first
+            attackee = game.isColliding(region)
+            if attackee == False :
+                return attackee
+            return attackee.attacked( self.damage )
