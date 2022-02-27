@@ -33,9 +33,10 @@ class gameplay :
             for i in range(self.size.x*self.unitsize.x):
                 char = self.grid[i//self.unitsize.x][j//self.unitsize.y][i%self.unitsize.x][j%self.unitsize.y]
                 if char == ' ' :
-                    dire = self.closestBuilding[i//self.unitsize.x][j//self.unitsize.y]["dist"]
-                    dire = int(cmp(dire.x,0)*3 + cmp(dire.y,0))
-                    char = "·↓↗→↘↖←↙↑"[dire]
+                    if self.closestBuilding != {} :
+                        dire = self.closestBuilding[i//self.unitsize.x][j//self.unitsize.y]["dist"]
+                        dire = int(cmp(dire.x,0)*3 + cmp(dire.y,0))
+                        char = "·↓↗→↘↖←↙↑"[dire]
                 print( char + ST.RESET_ALL, end='' )
             print()
 
