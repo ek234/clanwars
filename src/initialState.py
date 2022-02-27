@@ -11,7 +11,7 @@ spawns = [
 ]
 
 townhalls_at = [
-    xy(30,30)
+    xy(60,13)
 ]
 
 huts_at = [
