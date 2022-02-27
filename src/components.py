@@ -1,4 +1,4 @@
-import math as math
+from copy import copy as cp
 from loadconfig import *
 from utils import dist, cmp
 from utils import UP, RIGHT, DOWN, LEFT
@@ -136,8 +136,8 @@ class building :
     def __init__ ( self, health, position, size, defchar ) :
         self.health = health
         self.maxhealth = health
-        self.position = position
-        self.size = size
+        self.position = cp(position)
+        self.size = cp(size)
         self.defchar = defchar
         self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
 
@@ -179,8 +179,8 @@ class cannon (building) :
 
     def __init__ ( self, position ) :
         super().__init__( cannon_maxhealth, position, cannon_size, 'C' )
-        self.range = cannon_range
-        self.damage = cannon_damage
+        self.range = cp(cannon_range)
+        self.damage = cp(cannon_damage)
 
     def shoot (self) :
         def inrange (pos) :
@@ -200,12 +200,12 @@ class wall (building) :
 class troop :
 
     def __init__ (self, position, health, damage, speed, size, defchar) :
-        self.position = position
+        self.position = cp(position)
         self.health = health
         self.maxhealth = health
         self.damage = damage
         self.speed = speed
-        self.size = size
+        self.size = cp(size)
         self.defchar = defchar
         self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
 
