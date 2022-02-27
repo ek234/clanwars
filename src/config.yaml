@@ -42,7 +42,7 @@ king:
     y: 2
 
 barbarian:
-  maxhealth: 40
+  maxhealth: 400
   damage: 15
   speed: 1
   size:
