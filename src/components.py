@@ -1,6 +1,6 @@
 import math as math
 from loadconfig import *
-from utils import dist
+from utils import dist, cmp
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
@@ -31,13 +31,23 @@ class gameplay :
                 enemy.print()
         for j in range(self.size.y*self.unitsize.y):
             for i in range(self.size.x*self.unitsize.x):
-                print( BG.WHITE + self.grid[i//self.unitsize.x][j//self.unitsize.y][i%self.unitsize.x][j%self.unitsize.y] + ST.RESET_ALL, end='' )
+                char = self.grid[i//self.unitsize.x][j//self.unitsize.y][i%self.unitsize.x][j%self.unitsize.y]
+                if char == ' ' :
+                    dire = self.closestBuilding[i//self.unitsize.x][j//self.unitsize.y]["dist"]
+                    dire = int(cmp(dire.x,0)*3 + cmp(dire.y,0))
+                    char = "·↓↗→↘↖←↙↑"[dire]
+                print( char + ST.RESET_ALL, end='' )
             print()
 
     def calcClosestBuilding (self) :
         ## TODO : use bfs to improve complexity
         def calcWeight (d) :
             return max( abs(d.x) , abs(d.y) )
+        def isBetter (a,b) :
+            if a["weight"] == b["weight"] :
+                return abs(a["dist"].x)+abs(a["dist"].y) < abs(b["dist"].x)+abs(b["dist"].y)
+            else :
+                return a["weight"] < b["weight"]
         def ClosestFormat ( dis, building ) :
             return { "dist": dis, "building": building, "weight": calcWeight(dis) }
         for i in range(self.size.x) :
@@ -46,10 +56,10 @@ class gameplay :
                 for buildingtype in self.buildings :
                     for building in buildingtype :
                         if building.health > 0 :
-                            newdist = dist(i, j, building)
+                            tmpClosest = ClosestFormat( dist(i, j, building), building )
                             if self.closestBuilding[i][j] == {} or \
-                                    calcWeight(newdist) < self.closestBuilding[i][j]["weight"] :
-                                        self.closestBuilding[i][j] = ClosestFormat( newdist, building )
+                                    isBetter( tmpClosest, self.closestBuilding[i][j] ) :
+                                        self.closestBuilding[i][j] = tmpClosest
 
     def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, wall_positions ) :
         if len(spawns) != 3 :
@@ -207,13 +217,15 @@ class troop :
         closest = game.closestBuilding[int(oldx)][int(oldy)]
         if closest != {} :
             direction = closest["dist"]
-            self.position.x += math.copysign(self.speed*dt,direction.x)
-            self.position.y += math.copysign(self.speed*dt,direction.y)
+            self.position.x += self.speed*dt * cmp(direction.x,0)
+            self.position.y += self.speed*dt * cmp(direction.y,0)
             ctr = 0
             while game.isColliding(self) != False and ctr < 1000 :
                 self.position.x = ( self.position.x + oldx ) / 2
                 self.position.y = ( self.position.y + oldy ) / 2
                 ctr += 1
+            self.position.x = self.position.x % game.size.x
+            self.position.y = self.position.y % game.size.y
 
     def print (self) :
         color = FG.CYAN
@@ -287,6 +299,8 @@ class king (troop) :
                 self.position.x = ( self.position.x + oldx ) / 2
                 self.position.y = ( self.position.y + oldy ) / 2
                 ctr += 1
+            self.position.x = self.position.x % game.size.x
+            self.position.y = self.position.y % game.size.y
             self.direction = towards
 
 class barbarian (troop) :
