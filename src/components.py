@@ -4,6 +4,7 @@ from utils import dist
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
+from utils import xy, attack_region
 from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST
 
 coloramaInit()
@@ -81,16 +82,18 @@ class gameplay :
     def spawn_barbarian (self, location) :
         self.barbarians.append( barbarian(self.spawns[location]) )
 
-    def isColliding ( self, sprite ) :
-        for struct in [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls :
+    def isColliding ( self, sprite, structs=None ) :
+        if structs == None :
+            # buildings have more priorities than walls- so in attack_region, buildings will show up first
+            structs = [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls
+        for struct in structs :
             if sprite.position.x + sprite.size.x <= struct.position.x or \
                sprite.position.x >= struct.position.x + struct.size.x or \
                sprite.position.y + sprite.size.y <= struct.position.y or \
                sprite.position.y >= struct.position.y + struct.size.y or \
                struct.health <= 0 :
                 continue
-            print(struct.position.x, struct.position.y)
-            return True
+            return struct
         return False
 
     def gameloop (self, dt) :
@@ -207,7 +210,7 @@ class troop :
             self.position.x += math.copysign(self.speed*dt,direction.x)
             self.position.y += math.copysign(self.speed*dt,direction.y)
             ctr = 0
-            while game.isColliding(self) and ctr < 1000 :
+            while game.isColliding(self) != False and ctr < 1000 :
                 self.position.x = ( self.position.x + oldx ) / 2
                 self.position.y = ( self.position.y + oldy ) / 2
                 ctr += 1
@@ -239,20 +242,33 @@ class king (troop) :
         self.direction = direction
 
     def attack ( self ) :
-        nextx,nexty = int(self.position.x),int(self.position.y)
+        regposx = self.position.x
+        regposy = self.position.y
+        regsizx = self.size.x
+        regsizy = self.size.y
         if self.direction == UP :
-            nexty -= 1
-        elif self.direction == RIGHT :
-            nextx += 1
-        elif self.direction == DOWN :
-            nexty += 1
+            regposy -= 1
+            regsizy = 1
         elif self.direction == LEFT :
-            nextx -= 1
+            regposx -= 1
+            regsizx = 1
+        elif self.direction == DOWN :
+            regposy += self.size.y
+            regsizy = 1
+        elif self.direction == RIGHT :
+            regposx += self.size.x
+            regsizx = 1
         else :
             raise RuntimeError("unknown direction")
-        for struct in [ building for buildingtype in game.buildings for building in buildingtype ] + game.walls :
-            if struct.health > 0 and struct.position.x == nextx and struct.position.y == nexty :
-                return struct.attacked( self.damage )
+
+        region = attack_region(
+                xy(int(regposx) , int(regposy)),
+                xy(int(regsizx) , int(regsizy))
+        )
+        attackee = game.isColliding(region)
+        if attackee == False :
+            return attackee
+        return attackee.attacked( self.damage )
 
     def move (self, towards, dt) :
             oldx , oldy = self.position.x , self.position.y
@@ -267,7 +283,7 @@ class king (troop) :
             else :
                 raise RuntimeError("unknown direction")
             ctr = 0
-            while game.isColliding(self) and ctr < 1000 :
+            while game.isColliding(self) != False and ctr < 1000 :
                 self.position.x = ( self.position.x + oldx ) / 2
                 self.position.y = ( self.position.y + oldy ) / 2
                 ctr += 1
@@ -279,14 +295,18 @@ class barbarian (troop) :
         super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b' )
 
     def attack (self) :
-        closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
-        if closest != {} :
-            if closest["weight"] == 0 :
-                # closest building must have more than 0 health
-                return closest["building"].attacked( self.damage )
-            else :
-                nextx = int( self.position.x + math.copysign(1,closest["dist"].x) )
-                nexty = int( self.position.y + math.copysign(1,closest["dist"].y) )
-                for wall in game.walls :
-                    if wall.health > 0 and wall.position.x == nextx and wall.position.y == nexty :
-                        return wall.attacked( self.damage )
+        # the region around the troop - the area that the troop can damage
+        regposx = self.position.x - 1
+        regposy = self.position.y - 1
+        regsizx = self.size.x + 2
+        regsizy = self.size.y + 2
+
+        region = attack_region(
+                xy(int(regposx) , int(regposy)),
+                xy(int(regsizx) , int(regsizy))
+        )
+        # buildings have more priority than walls so they are checked first
+        attackee = game.isColliding(region)
+        if attackee == False :
+            return attackee
+        return attackee.attacked( self.damage )

@@ -11,6 +11,11 @@ class xy :
         self.x = x
         self.y = y
 
+class attack_region :
+    def __init__ (self, position, size) :
+        self.position = position
+        self.size = size
+
 def dist (i, j, b) :
     ## normally these is the correct formulae:
     #X = max(min( i, b.position.x+b.size.x-1 ), b.position.x)
