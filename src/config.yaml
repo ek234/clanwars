@@ -36,7 +36,7 @@ wall:
 king:
   maxhealth: 200
   damage: 25
-  speed: 2
+  speed: 4
   size:
     x: 3
     y: 2
@@ -44,7 +44,7 @@ king:
 barbarian:
   maxhealth: 400
   damage: 15
-  speed: 1
+  speed: 2
   size:
     x: 2
     y: 1
