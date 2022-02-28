@@ -148,7 +148,7 @@ class gameplay :
         for enemy in [ game.king ] + game.barbarians :
             if enemy != None :
                 if enemy.health > 0 :
-                    enemy.health = enemy.health * 1.5 % enemy.maxhealth
+                    enemy.health = min( int( enemy.health * 1.5 ) , enemy.maxhealth )
 
     def spell_rage ( self ) :
         self.TimeToRage = rage_timecap
