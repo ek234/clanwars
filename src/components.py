@@ -5,13 +5,13 @@ from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
 from utils import xy, attack_region
+from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit
 from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST, ansi
 
 DEBUG = False
 
 coloramaInit()
 
-## TODO : make unit sprites for each
 ## TODO : correct collision fn and collision bounce back
 ## TODO : fix glitch that lets King and troops through structures due to dt being too large
 ## TODO : make barbarian speed little random
@@ -138,13 +138,16 @@ game = gameplay(display_size, display_unit_size, display_fps, ' ');
 
 class building :
 
-    def __init__ ( self, health, position, size, defchar ) :
+    def __init__ ( self, health, position, size, defchar, unit=None ) :
         self.health = health
         self.maxhealth = health
         self.position = cp(position)
         self.size = cp(size)
         self.defchar = defchar
-        self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
+        if unit == None :
+            self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
+        else :
+            self.unit = unit
 
     def attacked ( self, damage ) :
         self.health -= damage
@@ -171,19 +174,19 @@ class building :
 class townhall (building) :
 
     def __init__ ( self, position ) :
-        super().__init__( townhall_maxhealth, position, townhall_size, 'T' )
+        super().__init__( townhall_maxhealth, position, townhall_size, 'T', townhall_unit )
 
 
 class hut (building) :
 
     def __init__ ( self, position ) :
-        super().__init__( hut_maxhealth, position, hut_size, 'H' )
+        super().__init__( hut_maxhealth, position, hut_size, 'H', hut_unit )
 
 
 class cannon (building) :
 
     def __init__ ( self, position ) :
-        super().__init__( cannon_maxhealth, position, cannon_size, 'C' )
+        super().__init__( cannon_maxhealth, position, cannon_size, 'C', cannon_unit )
         self.range = cp(cannon_range)
         self.damage = cp(cannon_damage)
 
@@ -199,12 +202,12 @@ class cannon (building) :
 class wall (building) :
 
     def __init__ ( self, position ) :
-        super().__init__( wall_maxhealth, position, wall_size, 'W' )
+        super().__init__( wall_maxhealth, position, wall_size, 'W', wall_unit )
 
 
 class troop :
 
-    def __init__ (self, position, health, damage, speed, size, defchar) :
+    def __init__ ( self, position, health, damage, speed, size, defchar, unit=None ) :
         self.position = cp(position)
         self.health = health
         self.maxhealth = health
@@ -212,7 +215,10 @@ class troop :
         self.speed = speed
         self.size = cp(size)
         self.defchar = defchar
-        self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
+        if unit == None :
+            self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
+        else :
+            self.unit = unit
 
     def attacked ( self, damage ) :
         self.health = max(0, self.health-damage)
@@ -242,13 +248,13 @@ class troop :
         if self.health <= 0 :
             color = FG.RED + ST.BRIGHT
         elif self.health < self.maxhealth * 0.2 :
-            color = FG.MAGENTA
-        elif self.health < self.maxhealth * 0.4 :
             color = FG.LIGHTRED_EX
-        elif self.health < self.maxhealth * 0.6 :
+        elif self.health < self.maxhealth * 0.4 :
             color = FG.LIGHTMAGENTA_EX
-        elif self.health < self.maxhealth * 0.8 :
+        elif self.health < self.maxhealth * 0.6 :
             color = FG.BLUE
+        elif self.health < self.maxhealth * 0.8 :
+            color = FG.LIGHTCYAN_EX
         for i in range(self.size.x):
             if self.position.x+i <= game.size.x :
                 for j in range(self.size.y):
@@ -260,7 +266,7 @@ class troop :
 class king (troop) :
 
     def __init__ ( self, position, direction ) :
-        super().__init__( position, king_maxhealth, king_damage, king_speed, king_size, 'K' )
+        super().__init__( position, king_maxhealth, king_damage, king_speed, king_size, 'K', king_unit )
         self.direction = direction
 
     def attack ( self ) :
@@ -323,7 +329,7 @@ class king (troop) :
 class barbarian (troop) :
 
     def __init__ ( self, position, ) :
-        super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b' )
+        super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b', barbarian_unit )
 
     def attack (self) :
         if self.health > 0 :

@@ -22,7 +22,7 @@ hut:
 cannon:
   maxhealth: 100
   size:
-    x: 2
+    x: 3
     y: 1
   range: 8
   damage: 10
@@ -42,9 +42,9 @@ king:
     y: 2
 
 barbarian:
-  maxhealth: 400
+  maxhealth: 40
   damage: 15
   speed: 2
   size:
-    x: 2
-    y: 1
+    x: 1
+    y: 2
