@@ -7,14 +7,13 @@ from utils import NOTSTARTED, INGAME, WON, LOST
 from utils import xy, attack_region
 from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit
 from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST, ansi
+from random import random as rnd
 
 DEBUG = False
 
 coloramaInit()
 
-## TODO : correct collision fn and collision bounce back
 ## TODO : fix glitch that lets King and troops through structures due to dt being too large
-## TODO : make barbarian speed little random
 
 class gameplay :
 
@@ -230,7 +229,7 @@ class troop :
         self.health = health
         self.maxhealth = health
         self.damage = damage
-        self.speed = speed
+        self.speed = speed * ( 1 + rnd()/8 )
         self.size = cp(size)
         self.defchar = defchar
         self.wasHurt = False
