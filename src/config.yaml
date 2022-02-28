@@ -48,3 +48,8 @@ barbarian:
   size:
     x: 1
     y: 2
+
+spell:
+  rage:
+    timecap:
+      5

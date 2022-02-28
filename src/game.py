@@ -2,6 +2,7 @@ from components import game
 import time
 from initialState import spawns, townhalls_at, huts_at, cannons_at, walls_at
 from utils import UP, RIGHT, DOWN, LEFT
+from utils import SPELL_RAGE, SPELL_HEAL
 from utils import NOTSTARTED, INGAME, WON, LOST
 from getinput import Get, input_to
 
@@ -30,7 +31,11 @@ while gameState is INGAME :
             game.king.move(inp, dt)
     elif inp in {'1','2','3'} :
         game.spawn_barbarian(int(inp)-1)
-    elif inp == 'q' :
+    elif inp == SPELL_HEAL :
+        game.spell_heal()
+    elif inp == SPELL_RAGE :
+        game.spell_rage()
+    elif inp == 'l' :
         break
 
     currTime = time.time()

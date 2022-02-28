@@ -91,6 +91,8 @@ class gameplay :
         self.king = None
         self.barbarians = []
 
+        self.TimeToRage = 0
+
     def gameStart (self, location) :
         self.king = king(self.spawns[location], UP)
         return game.checkOver()
@@ -113,6 +115,7 @@ class gameplay :
         return False
 
     def gameloop (self, dt) :
+        self.TimeToRage = max( self.TimeToRage-dt, 0 )
         for barbarian_ in self.barbarians :
             if barbarian_.health > 0 :
                 barbarian_.attack()
@@ -123,6 +126,15 @@ class gameplay :
         self.print()
         return self.checkOver()
         
+    def spell_heal ( self ) :
+        for enemy in [ game.king ] + game.barbarians :
+            if enemy != None :
+                if enemy.health > 0 :
+                    enemy.health = enemy.health * 1.5 % enemy.maxhealth
+
+    def spell_rage ( self ) :
+        self.TimeToRage = rage_timecap
+
     def checkOver (self) :
         status = INGAME
         if self.king is None :
@@ -134,7 +146,6 @@ class gameplay :
         return status
 
 game = gameplay(display_size, display_unit_size, display_fps, ' ');
-
 
 class building :
 
@@ -229,8 +240,11 @@ class troop :
             closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
             if closest != {} :
                 direction = closest["dist"]
-                self.position.x += self.speed*dt * cmp(direction.x,0)
-                self.position.y += self.speed*dt * cmp(direction.y,0)
+                speed = self.speed
+                if game.TimeToRage > 0 :
+                    speed *= 2
+                self.position.x += speed*dt * cmp(direction.x,0)
+                self.position.y += speed*dt * cmp(direction.y,0)
                 if game.isColliding(self) != False :
                     if direction.x != 0 :
                         self.position.x = int(self.position.x)
@@ -255,6 +269,8 @@ class troop :
             color = FG.BLUE
         elif self.health < self.maxhealth * 0.8 :
             color = FG.LIGHTCYAN_EX
+        if game.TimeToRage > 0 :
+            color += BG.YELLOW
         for i in range(self.size.x):
             if self.position.x+i <= game.size.x :
                 for j in range(self.size.y):
@@ -296,20 +312,26 @@ class king (troop) :
             )
             attackee = game.isColliding(region)
             if attackee == False :
-                return attackee
-            return attackee.attacked( self.damage )
+                return False
+            damage = self.damage
+            if game.TimeToRage > 0 :
+                damage *= 2
+            return attackee.attacked( damage )
 
     def move (self, towards, dt) :
         if self.health > 0 :
             oldx , oldy = self.position.x , self.position.y
+            speed = self.speed
+            if game.TimeToRage > 0 :
+                speed *= 2
             if towards == UP :
-                self.position.y -= self.speed*dt
+                self.position.y -= speed*dt
             elif towards == LEFT :
-                self.position.x -= self.speed*dt
+                self.position.x -= speed*dt
             elif towards == DOWN :
-                self.position.y += self.speed*dt
+                self.position.y += speed*dt
             elif towards == RIGHT :
-                self.position.x += self.speed*dt
+                self.position.x += speed*dt
             else :
                 raise RuntimeError("unknown direction")
 
@@ -346,5 +368,8 @@ class barbarian (troop) :
             # buildings have more priority than walls so they are checked first
             attackee = game.isColliding(region)
             if attackee == False :
-                return attackee
-            return attackee.attacked( self.damage )
+                return False
+            damage = self.damage
+            if game.TimeToRage > 0 :
+                damage *= 2
+            return attackee.attacked( damage )

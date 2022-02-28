@@ -1,8 +1,13 @@
 num_buildingtype = 3
+num_spells = 2
 
-# enum
 UP, LEFT, DOWN, RIGHT = 'w', 'a', 's', 'd'
 UP, LEFT, DOWN, RIGHT = ',', 'a', 'o', 'e'
+
+SPELL_RAGE, SPELL_HEAL = 'c', 'x'
+SPELL_RAGE, SPELL_HEAL = 'j', 'q'
+
+# enum
 TOWNHALL, HUT, CANNON = range(num_buildingtype)
 NOTSTARTED, INGAME, WON, LOST = range(-1,3)
 

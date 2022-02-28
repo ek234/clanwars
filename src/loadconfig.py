@@ -31,3 +31,5 @@ barbarian_speed = config["barbarian"]["speed"]
 barbarian_damage = config["barbarian"]["damage"]
 barbarian_maxhealth = config["barbarian"]["maxhealth"]
 barbarian_size = xy( config["barbarian"]["size"]["x"], config["barbarian"]["size"]["y"] )
+
+rage_timecap = config["spell"]["rage"]["timecap"]
