@@ -114,15 +114,17 @@ class gameplay :
             return struct
         return False
 
-    def gameloop (self, dt) :
+    def gameloop (self, ite, dt) :
         self.TimeToRage = max( self.TimeToRage-dt, 0 )
-        for barbarian_ in self.barbarians :
-            if barbarian_.health > 0 :
-                barbarian_.attack()
-                barbarian_.move(dt)
-        for cannon_ in self.buildings[CANNON] :
-            if cannon_.health > 0 :
-                cannon_.shoot()
+        if ite % 2 :
+            for barbarian_ in self.barbarians :
+                if barbarian_.health > 0 :
+                    barbarian_.attack()
+                    barbarian_.move(dt)
+        else :
+            for cannon_ in self.buildings[CANNON] :
+                if cannon_.health > 0 :
+                    cannon_.shoot()
         self.print()
         return self.checkOver()
         
@@ -155,6 +157,7 @@ class building :
         self.position = cp(position)
         self.size = cp(size)
         self.defchar = defchar
+        self.wasHurt = False
         if unit == None :
             self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
         else :
@@ -164,7 +167,8 @@ class building :
         self.health -= damage
         if self.health <= 0 :
             game.calcClosestBuilding()
-            return game.checkOver()
+        self.wasHurt = True
+        return game.checkOver()
 
     def print (self) :
         if self.health > 0:
@@ -173,6 +177,9 @@ class building :
                 color = FG.RED
             elif self.health < self.maxhealth * 0.5 :
                 color = FG.YELLOW
+            if self.wasHurt :
+                self.wasHurt = False
+                color = FG.BLACK
             for i in range(self.size.x):
                 if self.position.x+i <= game.size.x :
                     for j in range(self.size.y):
@@ -226,6 +233,7 @@ class troop :
         self.speed = speed
         self.size = cp(size)
         self.defchar = defchar
+        self.wasHurt = False
         if unit == None :
             self.unit = [ [ [ [ defchar for _ in range(game.unitsize.y) ] for _ in range(game.unitsize.x) ] for _ in range(size.y) ] for _ in range(size.x) ]
         else :
@@ -233,6 +241,7 @@ class troop :
 
     def attacked ( self, damage ) :
         self.health = max(0, self.health-damage)
+        self.wasHurt = True
         return game.checkOver()
 
     def move (self, dt) :
@@ -269,6 +278,9 @@ class troop :
             color = FG.BLUE
         elif self.health < self.maxhealth * 0.8 :
             color = FG.LIGHTCYAN_EX
+        if self.wasHurt :
+            self.wasHurt = False
+            color = FG.BLACK
         if game.TimeToRage > 0 :
             color += BG.YELLOW
         for i in range(self.size.x):

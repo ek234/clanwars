@@ -15,12 +15,15 @@ gameState = game.gameStart(1)
 if gameState == NOTSTARTED :
     time.sleep(0.1)
 currTime = time.time()
+ite = 0
 while gameState is INGAME :
+
+    ite+=1
 
     prevTime = currTime
     currTime = time.time()
     dt = currTime - prevTime
-    waitTime = max(1./game.fps - dt, 0.1)
+    waitTime = max(1./game.fps - dt, 0.05)
 
     inp = input_to(Get(), waitTime)
     if inp == " " :
@@ -44,13 +47,9 @@ while gameState is INGAME :
     if waitTime > 0 :
         time.sleep(waitTime)
 
-    gameState = game.gameloop(dt)
+    gameState = game.gameloop(ite, dt)
 
 if gameState == WON :
     print("you win")
 elif gameState == LOST :
     print("better luck next time")
-
-#game.spawn_barbarian()
-#king attack
-#king move
