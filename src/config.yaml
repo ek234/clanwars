@@ -8,7 +8,7 @@ display:
   fps: 1
 
 townhall:
-  maxhealth: 100
+  maxhealth: 300
   size:
     x: 4
     y: 3
@@ -28,7 +28,7 @@ cannon:
   damage: 10
 
 wall:
-  maxhealth: 100
+  maxhealth: 30
   size:
     x: 1
     y: 1
@@ -42,7 +42,7 @@ king:
     y: 2
 
 barbarian:
-  maxhealth: 40
+  maxhealth: 50
   damage: 15
   speed: 2
   size:

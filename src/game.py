@@ -38,7 +38,7 @@ while gameState is INGAME :
         game.spell_heal()
     elif inp == SPELL_RAGE :
         game.spell_rage()
-    elif inp == 'l' :
+    elif inp == '/' :
         break
 
     currTime = time.time()

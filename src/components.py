@@ -42,6 +42,23 @@ class gameplay :
                     dire = int(cmp(dire.x,0)*3 + cmp(dire.y,0))
                     char = "·↓↗→↘↖←↙↑"[dire]
                 print( char + ST.RESET_ALL, end='' )
+            if j == self.size.y // 4 :
+                if self.king != None :
+                    print( "king health:", self.king.health, end='' )
+            if j == self.size.y // 2 :
+                print( "Keybinds:", end='' )
+            if j == self.size.y // 2 + 1 :
+                print( "1/2/3: spawn", end='' )
+            if j == self.size.y // 2 + 2 :
+                print( "w/a/s/d: king", end='' )
+            if j == self.size.y // 2 + 3 :
+                print( "<space>: attack", end='' )
+            if j == self.size.y // 2 + 4 :
+                print( "x: heal", end='' )
+            if j == self.size.y // 2 + 5 :
+                print( "c: rage", end='' )
+            if j == self.size.y // 2 + 6 :
+                print( "/: quit", end='' )
             print()
 
     def calcClosestBuilding (self) :
