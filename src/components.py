@@ -4,7 +4,7 @@ from utils import dist, cmp
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
-from utils import xy, attack_region
+from utils import XY, AttackRegion
 from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit
 from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST, ansi
 from random import random as rnd
@@ -13,9 +13,9 @@ DEBUG = False
 
 coloramaInit()
 
-## TODO : fix glitch that lets King and troops through structures due to dt being too large
+## TODO : fix glitch that lets King and Troops through structures due to dt being too large
 
-class gameplay :
+class Gameplay :
 
     def __init__ (self, size, unitsize, fps, bgchar ) :
         self.size = size
@@ -96,10 +96,10 @@ class gameplay :
         self.spawns = spawns
 
         self.buildings = [ [] for _ in range(num_buildingtype) ]
-        self.buildings[TOWNHALL] = [ townhall(pos) for pos in townhall_positions ]
-        self.buildings[HUT] = [ hut(pos) for pos in hut_positions ]
-        self.buildings[CANNON] = [ cannon(pos) for pos in cannon_positions ]
-        self.walls = [ wall(pos) for pos in wall_positions ]
+        self.buildings[TOWNHALL] = [ Townhall(pos) for pos in townhall_positions ]
+        self.buildings[HUT] = [ Hut(pos) for pos in hut_positions ]
+        self.buildings[CANNON] = [ Cannon(pos) for pos in cannon_positions ]
+        self.walls = [ Wall(pos) for pos in wall_positions ]
 
         self.closestBuilding = [ [ {} for _ in range(self.size.y) ] for _ in range(self.size.x) ]
         self.calcClosestBuilding()
@@ -110,11 +110,11 @@ class gameplay :
         self.TimeToRage = 0
 
     def gameStart (self, location) :
-        self.king = king(self.spawns[location], UP)
+        self.king = King(self.spawns[location], UP)
         return game.checkOver()
 
     def spawn_barbarian (self, location) :
-        self.barbarians.append( barbarian(self.spawns[location]) )
+        self.barbarians.append( Barbarian(self.spawns[location]) )
 
     def isColliding ( self, sprite, structs=None ) :
         if structs == None :
@@ -163,9 +163,9 @@ class gameplay :
             status = WON
         return status
 
-game = gameplay(display_size, display_unit_size, display_fps, ' ');
+game = Gameplay(display_size, display_unit_size, display_fps, ' ');
 
-class building :
+class Building :
 
     def __init__ ( self, health, position, size, defchar, unit=None ) :
         self.health = health
@@ -205,19 +205,19 @@ class building :
                                     game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = color + self.unit[i][j][ui][uj] + ST.RESET_ALL
 
 
-class townhall (building) :
+class Townhall (Building) :
 
     def __init__ ( self, position ) :
         super().__init__( townhall_maxhealth, position, townhall_size, 'T', townhall_unit )
 
 
-class hut (building) :
+class Hut (Building) :
 
     def __init__ ( self, position ) :
         super().__init__( hut_maxhealth, position, hut_size, 'H', hut_unit )
 
 
-class cannon (building) :
+class Cannon (Building) :
 
     def __init__ ( self, position ) :
         super().__init__( cannon_maxhealth, position, cannon_size, 'C', cannon_unit )
@@ -233,13 +233,13 @@ class cannon (building) :
                 return enemy.attacked(self.damage)
 
 
-class wall (building) :
+class Wall (Building) :
 
     def __init__ ( self, position ) :
         super().__init__( wall_maxhealth, position, wall_size, 'W', wall_unit )
 
 
-class troop :
+class Troop :
 
     def __init__ ( self, position, health, damage, speed, size, defchar, unit=None ) :
         self.position = cp(position)
@@ -307,7 +307,7 @@ class troop :
                             for uj in range(game.unitsize.y):
                                 game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = color + self.unit[i][j][ui][uj] + ST.RESET_ALL
 
-class king (troop) :
+class King (Troop) :
 
     def __init__ ( self, position, direction ) :
         super().__init__( position, king_maxhealth, king_damage, king_speed, king_size, 'K', king_unit )
@@ -334,9 +334,9 @@ class king (troop) :
             else :
                 raise RuntimeError("unknown direction")
 
-            region = attack_region(
-                    xy(int(regposx) , int(regposy)),
-                    xy(int(regsizx) , int(regsizy))
+            region = AttackRegion(
+                    XY(int(regposx) , int(regposy)),
+                    XY(int(regsizx) , int(regsizy))
             )
             attackee = game.isColliding(region)
             if attackee == False :
@@ -376,22 +376,22 @@ class king (troop) :
                 self.position.y -= cmp( self.position.y , oldy )
             self.direction = towards
 
-class barbarian (troop) :
+class Barbarian (Troop) :
 
     def __init__ ( self, position, ) :
         super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b', barbarian_unit )
 
     def attack (self) :
         if self.health > 0 :
-            # the region around the troop - the area that the troop can damage
+            # the region around the Troop - the area that the Troop can damage
             regposx = self.position.x - 1
             regposy = self.position.y - 1
             regsizx = self.size.x + 2
             regsizy = self.size.y + 2
 
-            region = attack_region(
-                    xy(int(regposx) , int(regposy)),
-                    xy(int(regsizx) , int(regsizy))
+            region = AttackRegion(
+                    XY(int(regposx) , int(regposy)),
+                    XY(int(regsizx) , int(regsizy))
             )
             # buildings have more priority than walls so they are checked first
             attackee = game.isColliding(region)
