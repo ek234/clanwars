@@ -302,7 +302,7 @@ class Troop :
         if self.wasHurt :
             self.wasHurt = False
             # color = FG.BLACK
-        if game.TimeToRage > 0 :
+        if game.TimeToRage > 0 and self.health > 0 :
             color += BG.YELLOW
         for i in range(self.size.x):
             if self.position.x+i <= game.size.x :
