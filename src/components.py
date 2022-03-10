@@ -261,26 +261,33 @@ class Troop :
         return game.checkOver()
 
     def move (self, dt) :
-        if self.health > 0 :
+        def moveOnce ( ds ) :
             closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
             if closest != {} :
                 direction = closest["dist"]
-                speed = self.speed
-                if game.TimeToRage > 0 :
-                    speed *= 2
-                self.position.x += speed*dt * cmp(direction.x,0)
-                self.position.y += speed*dt * cmp(direction.y,0)
+
+                # assert game.isColliding(self) == False
+
+                self.position.x += cmp(direction.x,0) * ds
                 if game.isColliding(self) != False :
-                    if direction.x != 0 :
-                        self.position.x = int(self.position.x)
-                    if direction.y != 0 :
-                        self.position.y = int(self.position.y)
-                    for _ in range(9) :
-                    # max iterations = 9 to avoid infi loop
-                        if game.isColliding(self) == False :
-                            break
+                    self.position.x = int(self.position.x)
+                    if game.isColliding(self) != False :
                         self.position.x -= cmp(direction.x,0)
+
+                self.position.y += cmp(direction.y,0) * ds
+                if game.isColliding(self) != False :
+                    self.position.y = int(self.position.y)
+                    if game.isColliding(self) != False :
                         self.position.y -= cmp(direction.y,0)
+
+        if self.health > 0 :
+            dist = self.speed * dt
+            if game.TimeToRage > 0 :
+                dist *= 2
+
+            moveOnce(dist - int(dist))
+            for _ in range(int(dist)) :
+                moveOnce(1)
 
     def print (self) :
         color = FG.CYAN
@@ -347,34 +354,46 @@ class King (Troop) :
             return attackee.attacked( damage )
 
     def move (self, towards, dt) :
+        def moveOnce ( dx, dy, ds ) :
+            # assert game.isColliding(self) == False
+
+            if dx != 0 :
+                self.position.x += cmp(dx,0) * ds
+                if game.isColliding(self) != False :
+                    self.position.x = int(self.position.x)
+                    if game.isColliding(self) != False :
+                        self.position.x -= cmp(dx,0)
+
+            if dy != 0 :
+                self.position.y += cmp(dy,0) * ds
+                if game.isColliding(self) != False :
+                    self.position.y = int(self.position.y)
+                    if game.isColliding(self) != False :
+                        self.position.y -= cmp(dy,0)
+
         if self.health > 0 :
-            oldx , oldy = self.position.x , self.position.y
+
             speed = self.speed
             if game.TimeToRage > 0 :
                 speed *= 2
+            dis = speed * dt
+
+            dx,dy = 0,0
             if towards == UP :
-                self.position.y -= speed*dt
+                dy -= speed*dt
             elif towards == LEFT :
-                self.position.x -= speed*dt
+                dx -= dis
             elif towards == DOWN :
-                self.position.y += speed*dt
+                dy += dis
             elif towards == RIGHT :
-                self.position.x += speed*dt
+                dx += dis
             else :
                 raise RuntimeError("unknown direction")
 
-            if game.isColliding(self) != False :
-                if self.position.x != oldx :
-                    self.position.x = int(self.position.x)
-                if self.position.y != oldy :
-                    self.position.y = int(self.position.y)
-            for _ in range(9) :
-                # max iterations = 9 to avoid infi loop
-                if game.isColliding(self) == False :
-                    break
-                self.position.x -= cmp( self.position.x , oldx )
-                self.position.y -= cmp( self.position.y , oldy )
             self.direction = towards
+            moveOnce( dx, dy, dis - int(dis) )
+            for _ in range(int(dis)) :
+                moveOnce( dx, dy, 1 )
 
 class Barbarian (Troop) :
 
