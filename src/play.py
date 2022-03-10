@@ -11,13 +11,17 @@ from getinput import Get, input_to
 ## TODO : avoid overlap of buildings
 
 timePerFrame = 1/game.fps
-os.system("stty -echo")
 filename = str(time.time())+".rpl"
-movelist = {}
-#movelist = []
+saveData = {}
 
 game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at )
-gameState = game.gameStart(1)
+inp = None
+while inp not in { 0, 1, 2 } :
+    inp = int(input("spawn king at 1, 2 or 3: ")) - 1
+gameState = game.gameStart(inp)
+saveData["kingSpawn"] = inp
+
+os.system("stty -echo")
 
 ite = 0
 prevFrameTime = time.time()
@@ -34,8 +38,7 @@ while gameState is INGAME :
     prevFrameTime = time.time()
 
     if inp != None :
-        movelist[ite] = inp
-    #movelist.append(inp)
+        saveData[ite] = inp
 
     if inp == " " :
         if game.king != None :
@@ -61,4 +64,4 @@ elif gameState == LOST :
 
 print("saving data in", filename)
 with open(filename, 'wb') as file :
-    pickle.dump( movelist, file )
+    pickle.dump( saveData, file )

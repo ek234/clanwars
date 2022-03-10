@@ -11,13 +11,14 @@ from utils import NOTSTARTED, INGAME, WON, LOST
 
 timePerFrame = 1/game.fps
 filename = input("enter filename: ")
-movelist = {}
+saveData = {}
 with open(filename, 'rb') as file :
-    movelist = pickle.load( file )
+    saveData = pickle.load( file )
 os.system("stty -echo")
 
 game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at )
-gameState = game.gameStart(1)
+
+gameState = game.gameStart(saveData["kingSpawn"])
 
 ite = 0
 prevFrameTime = time.time()
@@ -30,8 +31,8 @@ while gameState is INGAME :
         time.sleep(waitTime)
     prevFrameTime = time.time()
 
-    if ite in movelist :
-        inp = movelist[ite]
+    if ite in saveData :
+        inp = saveData[ite]
 
     if inp == " " :
         if game.king != None :
