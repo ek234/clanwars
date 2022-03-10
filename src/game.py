@@ -46,7 +46,7 @@ while gameState is INGAME :
     elif inp == '/' :
         break
 
-    gameState = game.gameloop(ite, timePerFrame)
+    gameState = game.gameloop(timePerFrame)
 
 if gameState == WON :
     print("you win")

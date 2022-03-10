@@ -130,17 +130,15 @@ class Gameplay :
             return struct
         return False
 
-    def gameloop (self, ite, dt) :
+    def gameloop (self, dt) :
         self.TimeToRage = max( self.TimeToRage-dt, 0 )
-        if ite % 2 :
-            for barbarian_ in self.barbarians :
-                if barbarian_.health > 0 :
-                    barbarian_.attack()
-                    barbarian_.move(dt)
-        else :
-            for cannon_ in self.buildings[CANNON] :
-                if cannon_.health > 0 :
-                    cannon_.shoot()
+        for barbarian_ in self.barbarians :
+            if barbarian_.health > 0 :
+                barbarian_.attack()
+                barbarian_.move(dt)
+        for cannon_ in self.buildings[CANNON] :
+            if cannon_.health > 0 :
+                cannon_.shoot()
         self.print()
         return self.checkOver()
         
