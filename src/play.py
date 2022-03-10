@@ -7,6 +7,7 @@ from utils import UP, RIGHT, DOWN, LEFT
 from utils import SPELL_RAGE, SPELL_HEAL
 from utils import NOTSTARTED, INGAME, WON, LOST
 from getinput import Get, input_to
+from endpage import ending
 
 ## TODO : avoid overlap of buildings
 
@@ -57,10 +58,7 @@ while gameState is INGAME :
 
     gameState = game.gameloop(timePerFrame)
 
-if gameState == WON :
-    print("you win")
-elif gameState == LOST :
-    print("better luck next time")
+ending( gameState == WON )
 
 print("saving data in", filename)
 with open(filename, 'wb') as file :
