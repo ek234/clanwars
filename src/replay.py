@@ -12,10 +12,16 @@ from endpage import ending
 ## TODO : avoid overlap of buildings
 
 timePerFrame = 1/game.fps
-filename = input("enter filename: ")
 saveData = {}
-with open(filename, 'rb') as file :
-    saveData = pickle.load( file )
+while True :
+    filename = input("enter filename: ")
+    try :
+        with open(filename, 'rb') as file :
+            saveData = pickle.load( file )
+    except :
+        print("please enter correct filename")
+    else :
+        break
 os.system("stty -echo")
 
 game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at )
