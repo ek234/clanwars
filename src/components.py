@@ -196,7 +196,7 @@ class Building :
                 # color = FG.BLACK
             if self.__class__.__name__ == "Cannon" and self.justShot :
                 self.justShot = False
-                color = BG.WHITE
+                color += BG.WHITE
             for i in range(self.size.x):
                 if self.position.x+i <= game.size.x :
                     for j in range(self.size.y):
