@@ -13,8 +13,6 @@ DEBUG = False
 
 coloramaInit()
 
-## TODO : fix glitch that lets King and Troops through structures due to dt being too large
-
 class Gameplay :
 
     def __init__ (self, size, unitsize, fps, bgchar ) :
@@ -73,7 +71,7 @@ class Gameplay :
             print()
 
     def calcClosestBuilding (self) :
-        ## TODO : use bfs to improve complexity
+        ## todo : use bfs to improve complexity
         def calcWeight (d) :
             return max( abs(d.x) , abs(d.y) )
         def isBetter (a,b) :
@@ -245,7 +243,6 @@ class Cannon (Building) :
 
     def shoot (self) :
         def inrange (pos) :
-            # TODO : better inrange algorithm
             return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
         for enemy in [ game.king ] + game.barbarians :
             if enemy != None and enemy.health > 0 and inrange ( enemy.position ) :

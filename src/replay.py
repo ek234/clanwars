@@ -9,8 +9,6 @@ from utils import SPELL_RAGE, SPELL_HEAL, SPELL_RISE
 from utils import NOTSTARTED, INGAME, WON, LOST
 from endpage import ending
 
-## TODO : avoid overlap of buildings
-
 timePerFrame = 1/game.fps
 saveData = {}
 while True :
