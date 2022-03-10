@@ -6,15 +6,15 @@ from initialState import spawns, townhalls_at, huts_at, cannons_at, walls_at
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import SPELL_RAGE, SPELL_HEAL
 from utils import NOTSTARTED, INGAME, WON, LOST
-from getinput import Get, input_to
 
 ## TODO : avoid overlap of buildings
 
 timePerFrame = 1/game.fps
-os.system("stty -echo")
-filename = str(time.time())+".rpl"
+filename = input("enter filename: ")
 movelist = {}
-#movelist = []
+with open(filename, 'rb') as file :
+    movelist = pickle.load( file )
+os.system("stty -echo")
 
 game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at )
 gameState = game.gameStart(1)
@@ -27,15 +27,11 @@ while gameState is INGAME :
     inp = None
     waitTime = timePerFrame - ( time.time() - prevFrameTime )
     if waitTime > 0 :
-        inp = input_to(Get(), waitTime)
-    waitTime = timePerFrame - ( time.time() - prevFrameTime )
-    if waitTime > 0 :
         time.sleep(waitTime)
     prevFrameTime = time.time()
 
-    if inp != None :
-        movelist[ite] = inp
-    #movelist.append(inp)
+    if ite in movelist :
+        inp = movelist[ite]
 
     if inp == " " :
         if game.king != None :
@@ -44,6 +40,7 @@ while gameState is INGAME :
         if game.king != None :
             game.king.move(inp, timePerFrame)
     elif inp in {'1','2','3'} :
+        assert inp != None
         game.spawn_barbarian(int(inp)-1)
     elif inp == SPELL_HEAL :
         game.spell_heal()
@@ -58,7 +55,3 @@ if gameState == WON :
     print("you win")
 elif gameState == LOST :
     print("better luck next time")
-
-print("saving data in", filename)
-with open(filename, 'wb') as file :
-    pickle.dump( movelist, file )
