@@ -14,7 +14,7 @@ saveData = {}
 while True :
     filename = input("enter filename: ")
     try :
-        with open(filename, 'rb') as file :
+        with open("replays/"+filename, 'rb') as file :
             saveData = pickle.load( file )
     except :
         print("please enter correct filename")

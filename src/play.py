@@ -69,5 +69,6 @@ saveData["num_ite"] = ite
 ending( gameState == WON )
 
 print("saving data in", filename)
-with open(filename, 'wb') as file :
+os.system("mkdir replays")
+with open("replays/"+filename, 'wb') as file :
     pickle.dump( saveData, file )
