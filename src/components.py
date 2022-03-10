@@ -194,6 +194,9 @@ class Building :
             if self.wasHurt :
                 self.wasHurt = False
                 # color = FG.BLACK
+            if self.__class__.__name__ == "Cannon" and self.justShot :
+                self.justShot = False
+                color = BG.WHITE
             for i in range(self.size.x):
                 if self.position.x+i <= game.size.x :
                     for j in range(self.size.y):
@@ -221,6 +224,7 @@ class Cannon (Building) :
         super().__init__( cannon_maxhealth, position, cannon_size, 'C', cannon_unit )
         self.range = cp(cannon_range)
         self.damage = cp(cannon_damage)
+        self.justShot = False
 
     def shoot (self) :
         def inrange (pos) :
@@ -228,6 +232,7 @@ class Cannon (Building) :
             return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
         for enemy in [ game.king ] + game.barbarians :
             if enemy != None and enemy.health > 0 and inrange ( enemy.position ) :
+                self.justShot = True
                 return enemy.attacked(self.damage)
 
 
