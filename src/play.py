@@ -4,7 +4,7 @@ import pickle
 from components import game
 from initialState import spawns, townhalls_at, huts_at, cannons_at, walls_at
 from utils import UP, RIGHT, DOWN, LEFT
-from utils import SPELL_RAGE, SPELL_HEAL
+from utils import SPELL_RAGE, SPELL_HEAL, SPELL_RISE
 from utils import NOTSTARTED, INGAME, WON, LOST
 from getinput import Get, input_to
 from endpage import ending
@@ -53,6 +53,8 @@ while gameState is INGAME :
         game.spell_heal()
     elif inp == SPELL_RAGE :
         game.spell_rage()
+    elif inp == SPELL_RISE :
+        game.spell_rise()
     elif inp == '/' :
         break
 

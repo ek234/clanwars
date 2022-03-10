@@ -4,8 +4,8 @@ num_spells = 2
 UP, LEFT, DOWN, RIGHT = 'w', 'a', 's', 'd'
 UP, LEFT, DOWN, RIGHT = ',', 'a', 'o', 'e'
 
-SPELL_RAGE, SPELL_HEAL = 'c', 'x'
-SPELL_RAGE, SPELL_HEAL = 'j', 'q'
+SPELL_RAGE, SPELL_HEAL, SPELL_RISE = 'c', 'x', 'z'
+SPELL_RAGE, SPELL_HEAL, SPELL_RISE = 'j', 'q', ';'
 
 # enum
 TOWNHALL, HUT, CANNON = range(num_buildingtype)

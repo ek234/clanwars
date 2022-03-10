@@ -58,6 +58,8 @@ class Gameplay :
             if j == self.size.y // 2 + 5 :
                 print( "c: rage", end='' )
             if j == self.size.y // 2 + 6 :
+                print( "z: rise", end='' )
+            if j == self.size.y // 2 + 7 :
                 print( "/: quit", end='' )
             print()
 
@@ -150,6 +152,12 @@ class Gameplay :
 
     def spell_rage ( self ) :
         self.TimeToRage = rage_timecap
+
+    def spell_rise ( self ) :
+        for enemy in [ self.king ] + self.barbarians :
+            if enemy != None :
+                if enemy.health <= 0 :
+                    enemy.health = enemy.maxhealth * 0.1
 
     def checkOver (self) :
         status = INGAME
