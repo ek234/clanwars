@@ -35,6 +35,7 @@ wall:
 
 king:
   maxhealth: 200
+  axeRange: 5
   damage: 25
   speed: 2
   size:

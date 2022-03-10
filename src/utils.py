@@ -1,6 +1,9 @@
 num_buildingtype = 3
 num_spells = 2
 
+CHANGE_WEAPON = 'e'
+CHANGE_WEAPON = '.'
+
 UP, LEFT, DOWN, RIGHT = 'w', 'a', 's', 'd'
 UP, LEFT, DOWN, RIGHT = ',', 'a', 'o', 'e'
 

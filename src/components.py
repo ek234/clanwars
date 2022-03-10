@@ -44,7 +44,14 @@ class Gameplay :
                 print( char + ST.RESET_ALL, end='' )
             if j == self.size.y // 4 :
                 if self.king != None :
-                    print( "king health:", self.king.health, end='' )
+                    print( "king's health:", self.king.health, end='' )
+            if j == self.size.y // 4 + 1:
+                if self.king != None :
+                    print( "weapon:", end=' ' )
+                    if self.king.isAxe :
+                        print("axe", end='')
+                    else :
+                        print("sword", end='')
             if j == self.size.y // 2 :
                 print( "Keybinds:", end='' )
             if j == self.size.y // 2 + 1 :
@@ -52,14 +59,16 @@ class Gameplay :
             if j == self.size.y // 2 + 2 :
                 print( "w/a/s/d: king", end='' )
             if j == self.size.y // 2 + 3 :
-                print( "<space>: attack", end='' )
+                print( "e: change weapon", end='' )
             if j == self.size.y // 2 + 4 :
-                print( "x: heal", end='' )
+                print( "<space>: attack", end='' )
             if j == self.size.y // 2 + 5 :
-                print( "c: rage", end='' )
+                print( "x: heal", end='' )
             if j == self.size.y // 2 + 6 :
-                print( "z: rise", end='' )
+                print( "c: rage", end='' )
             if j == self.size.y // 2 + 7 :
+                print( "z: rise", end='' )
+            if j == self.size.y // 2 + 8 :
                 print( "/: quit", end='' )
             print()
 
@@ -330,39 +339,63 @@ class King (Troop) :
     def __init__ ( self, position, direction ) :
         super().__init__( position, king_maxhealth, king_damage, king_speed, king_size, 'K', king_unit )
         self.direction = direction
+        self.isAxe = True
+        self.axeRange = king_axeRange
 
     def attack ( self ) :
         if self.health > 0 :
-            regposx = self.position.x
-            regposy = self.position.y
-            regsizx = self.size.x
-            regsizy = self.size.y
-            if self.direction == UP :
-                regposy -= 1
-                regsizy = 1
-            elif self.direction == LEFT :
-                regposx -= 1
-                regsizx = 1
-            elif self.direction == DOWN :
-                regposy += self.size.y
-                regsizy = 1
-            elif self.direction == RIGHT :
-                regposx += self.size.x
-                regsizx = 1
-            else :
-                raise RuntimeError("unknown direction")
+            attackees = set()
 
-            region = AttackRegion(
-                    XY(int(regposx) , int(regposy)),
-                    XY(int(regsizx) , int(regsizy))
-            )
-            attackee = game.isColliding(region)
-            if attackee == False :
+            if self.isAxe :
+                for x in range(-self.axeRange, self.axeRange+1) :
+                    for y in range(-(self.axeRange - abs(x)), (self.axeRange - abs(x))+1) :
+                        region = AttackRegion(
+                                XY(int(self.position.x)+x,int(self.position.y)+y),
+                                XY(1,1)
+                        )
+                        attackee = game.isColliding(region)
+                        if attackee != False :
+                            attackees.add(attackee)
+
+            else :
+                regposx = self.position.x
+                regposy = self.position.y
+                regsizx = self.size.x
+                regsizy = self.size.y
+                if self.direction == UP :
+                    regposy -= 1
+                    regsizy = 1
+                elif self.direction == LEFT :
+                    regposx -= 1
+                    regsizx = 1
+                elif self.direction == DOWN :
+                    regposy += self.size.y
+                    regsizy = 1
+                elif self.direction == RIGHT :
+                    regposx += self.size.x
+                    regsizx = 1
+                else :
+                    raise RuntimeError("unknown direction")
+
+                region = AttackRegion(
+                        XY(int(regposx) , int(regposy)),
+                        XY(int(regsizx) , int(regsizy))
+                )
+                attackee = game.isColliding(region)
+                if attackee != False :
+                    attackees.add(attackee)
+
+            if len(attackees) == 0 :
                 return False
+
             damage = self.damage
             if game.TimeToRage > 0 :
                 damage *= 2
-            return attackee.attacked( damage )
+
+            attacked = []
+            for attackee in attackees :
+                attacked.append( attackee.attacked( damage ) )
+            return attacked
 
     def move (self, towards, dt) :
         def moveOnce ( dx, dy, ds ) :
