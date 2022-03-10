@@ -195,7 +195,7 @@ class Building :
                 color = FG.YELLOW
             if self.wasHurt :
                 self.wasHurt = False
-                color = FG.BLACK
+                # color = FG.BLACK
             for i in range(self.size.x):
                 if self.position.x+i <= game.size.x :
                     for j in range(self.size.y):
@@ -303,7 +303,7 @@ class Troop :
             color = FG.LIGHTCYAN_EX
         if self.wasHurt :
             self.wasHurt = False
-            color = FG.BLACK
+            # color = FG.BLACK
         if game.TimeToRage > 0 :
             color += BG.YELLOW
         for i in range(self.size.x):
