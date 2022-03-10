@@ -58,6 +58,8 @@ while gameState is INGAME :
 
     gameState = game.gameloop(timePerFrame)
 
+saveData["num_ite"] = ite
+
 ending( gameState == WON )
 
 print("saving data in", filename)

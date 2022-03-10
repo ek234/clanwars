@@ -53,4 +53,7 @@ while gameState is INGAME :
 
     gameState = game.gameloop(timePerFrame)
 
+    if ite > saveData["num_ite"] :
+        break
+
 ending( gameState == WON )
