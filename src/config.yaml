@@ -5,7 +5,7 @@ display:
   unitsize:
     x: 1
     y: 1
-  fps: 1
+  fps: 10
 
 townhall:
   maxhealth: 300
