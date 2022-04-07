@@ -19,7 +19,10 @@ saveData = {}
 game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at )
 inp = None
 while inp not in { 0, 1, 2 } :
-    inp = int(input("spawn king at 1, 2 or 3: ")) - 1
+    try :
+        inp = int(input("spawn king at 1, 2 or 3: ")) - 1
+    except :
+        inp = None
 gameState = game.gameStart(inp)
 saveData["kingSpawn"] = inp
 
