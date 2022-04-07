@@ -37,8 +37,8 @@ while gameState is INGAME :
         time.sleep(waitTime)
     prevFrameTime = time.time()
 
-    if ite in saveData :
-        inp = saveData[ite]
+    if ite in saveData["moves"] :
+        inp = saveData["moves"][ite]
 
     if inp == " " :
         if game.king != None :

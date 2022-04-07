@@ -16,6 +16,7 @@ timePerFrame = 1/game.fps
 seed = time.time()
 filename = str(time.time())+".rpl"
 saveData = {}
+saveData["moves"] = {}
 
 game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at, seed )
 saveData["seed"] = seed
@@ -46,7 +47,7 @@ while gameState is INGAME :
     prevFrameTime = time.time()
 
     if inp != None :
-        saveData[ite] = inp
+        saveData["moves"][ite] = inp
 
     if inp == " " :
         if game.king != None :
