@@ -13,10 +13,13 @@ from endpage import ending
 ## TODO : avoid overlap of buildings
 
 timePerFrame = 1/game.fps
+seed = time.time()
 filename = str(time.time())+".rpl"
 saveData = {}
 
-game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at )
+game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at, seed )
+saveData["seed"] = seed
+
 inp = None
 while inp not in { 0, 1, 2 } :
     try :

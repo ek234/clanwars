@@ -8,6 +8,7 @@ from utils import XY, AttackRegion
 from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit
 from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST, ansi
 from random import random as rnd
+from random import seed
 
 DEBUG = False
 
@@ -93,7 +94,10 @@ class Gameplay :
                                     isBetter( tmpClosest, self.closestBuilding[i][j] ) :
                                         self.closestBuilding[i][j] = tmpClosest
 
-    def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, wall_positions ) :
+    def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, wall_positions, seed_ ) :
+
+        seed(seed_)
+        
         if len(spawns) != 3 :
             raise RuntimeError("incorrect num of spawns:", len(spawns))
         if len(townhall_positions) != 1 :

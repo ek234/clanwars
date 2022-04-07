@@ -22,7 +22,7 @@ while True :
         break
 os.system("stty -echo")
 
-game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at )
+game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at, saveData["seed"] )
 
 gameState = game.gameStart(saveData["kingSpawn"])
 
