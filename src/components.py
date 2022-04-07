@@ -31,7 +31,7 @@ class Gameplay :
                 enemy.print()
 
         # clear screen
-        print(ansi.clear_screen())
+        toprint = ansi.clear_screen()
         for j in range(self.size.y*self.unitsize.y):
             for i in range(self.size.x*self.unitsize.x):
                 char = self.grid[i//self.unitsize.x][j//self.unitsize.y][i%self.unitsize.x][j%self.unitsize.y]
@@ -39,36 +39,37 @@ class Gameplay :
                     dire = self.closestBuilding[i//self.unitsize.x][j//self.unitsize.y]["dist"]
                     dire = int(cmp(dire.x,0)*3 + cmp(dire.y,0))
                     char = "·↓↗→↘↖←↙↑"[dire]
-                print( char + ST.RESET_ALL, end='' )
+                toprint += char + ST.RESET_ALL
             if j == self.size.y // 4 :
                 if self.king != None :
-                    print( "king's health:", self.king.health, end='' )
+                    toprint += "king's health: " + str(self.king.health)
             if j == self.size.y // 4 + 1:
                 if self.king != None :
-                    print( "weapon:", end=' ' )
+                    toprint += "weapon:"
                     if self.king.isAxe :
-                        print("axe", end='')
+                        toprint += "axe"
                     else :
-                        print("sword", end='')
+                        toprint += "sword"
             if j == self.size.y // 2 :
-                print( "Keybinds:", end='' )
+                toprint += "Keybinds:"
             if j == self.size.y // 2 + 1 :
-                print( "1/2/3: spawn", end='' )
+                toprint += "1/2/3: spawn"
             if j == self.size.y // 2 + 2 :
-                print( "w/a/s/d: king", end='' )
+                toprint += "w/a/s/d: king"
             if j == self.size.y // 2 + 3 :
-                print( "e: change weapon", end='' )
+                toprint += "e: change weapon"
             if j == self.size.y // 2 + 4 :
-                print( "<space>: attack", end='' )
+                toprint += "<space>: attack"
             if j == self.size.y // 2 + 5 :
-                print( "x: heal", end='' )
+                toprint += "x: heal"
             if j == self.size.y // 2 + 6 :
-                print( "c: rage", end='' )
+                toprint += "c: rage"
             if j == self.size.y // 2 + 7 :
-                print( "z: rise", end='' )
+                toprint += "z: rise"
             if j == self.size.y // 2 + 8 :
-                print( "/: quit", end='' )
-            print()
+                toprint += "[: quit"
+            toprint += "\n"
+        print( toprint )
 
     def calcClosestBuilding (self) :
         ## todo : use bfs to improve complexity
