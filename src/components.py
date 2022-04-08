@@ -470,24 +470,39 @@ class Barbarian (Troop) :
 
     def attack (self) :
         if self.health > 0 :
-            # the region around the Troop - the area that the Troop can damage
-            regposx = self.position.x - 1
-            regposy = self.position.y - 1
-            regsizx = self.size.x + 2
-            regsizy = self.size.y + 2
+            closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
+            if closest != {} :
+                direction = closest["dist"]
+                regposx = self.position.x
+                regposy = self.position.y
+                regsizx = self.size.x
+                regsizy = self.size.y
+                if direction.x < 0 :
+                    regposx -= 1
+                    regsizx = 1
+                elif direction.x > 0 :
+                    regposx += self.size.x
+                    regsizx = 1
+                if direction.y < 0 :
+                    regposy -= 1
+                    regsizy = 1
+                elif direction.y > 0 :
+                    regposy += self.size.y
+                    regsizy = 1
 
-            region = AttackRegion(
-                    XY(int(regposx) , int(regposy)),
-                    XY(int(regsizx) , int(regsizy))
-            )
-            # buildings have more priority than walls so they are checked first
-            attackee = game.isColliding(region)
-            if attackee == False :
-                return False
-            damage = self.damage
-            if game.TimeToRage > 0 :
-                damage *= 2
-            return attackee.attacked( damage )
+                region = AttackRegion(
+                        XY(int(regposx) , int(regposy)),
+                        XY(int(regsizx) , int(regsizy))
+                )
+
+                # buildings have more priority than walls so they are checked first
+                attackee = game.isColliding(region)
+                if attackee == False :
+                    return False
+                damage = self.damage
+                if game.TimeToRage > 0 :
+                    damage *= 2
+                return attackee.attacked( damage )
         return False
 
 class Archer (Troop) :
