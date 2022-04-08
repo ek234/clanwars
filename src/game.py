@@ -10,7 +10,9 @@ from utils import NOTSTARTED, INGAME, WON, LOST
 from getinput import Get, input_to
 from endpage import ending
 
-## TODO : avoid overlap of buildings
+## todo : avoid overlap of buildings
+
+# TODO : add readme
 
 timePerFrame = 1/game.fps
 seed = time.time()
@@ -58,8 +60,8 @@ while gameState is INGAME :
     elif inp in { UP, LEFT, DOWN, RIGHT } :
         if game.king != None :
             game.king.move(inp, timePerFrame)
-    elif inp in {'1','2','3'} :
-        game.spawn_barbarian(int(inp)-1)
+    elif inp in {'1','2','3', '4', '5', '6', '7', '8', '9'} :
+        game.spawn(int(inp)-1)
     elif inp == SPELL_HEAL :
         game.spell_heal()
     elif inp == SPELL_RAGE :

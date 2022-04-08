@@ -49,9 +49,9 @@ while gameState is INGAME :
     elif inp in { UP, LEFT, DOWN, RIGHT } :
         if game.king != None :
             game.king.move(inp, timePerFrame)
-    elif inp in {'1','2','3'} :
+    elif inp in {'1','2','3', '4', '5', '6', '7', '8', '9'} :
         assert inp != None
-        game.spawn_barbarian(int(inp)-1)
+        game.spawn(int(inp)-1)
     elif inp == SPELL_HEAL :
         game.spell_heal()
     elif inp == SPELL_RAGE :

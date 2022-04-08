@@ -5,7 +5,7 @@ from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
 from utils import XY, AttackRegion
-from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit
+from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit, archer_unit, ballon_unit
 from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST, ansi
 from random import random as rnd
 from random import seed
@@ -27,7 +27,7 @@ class Gameplay :
         for struct in [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls :
             if struct.health > 0 :
                 struct.print()
-        for enemy in [ self.king ] + self.barbarians :
+        for enemy in [ self.king ] + self.barbarians + self.archers + self.ballons :
             if enemy != None :
                 enemy.print()
 
@@ -86,6 +86,7 @@ class Gameplay :
         for i in range(self.size.x) :
             for j in range(self.size.y) :
                 self.closestBuilding[i][j] = {}
+                self.closestAggressive[i][j] = {}
                 for buildingtype in self.buildings :
                     for building in buildingtype :
                         if building.health > 0 :
@@ -93,6 +94,11 @@ class Gameplay :
                             if self.closestBuilding[i][j] == {} or \
                                     isBetter( tmpClosest, self.closestBuilding[i][j] ) :
                                         self.closestBuilding[i][j] = tmpClosest
+                            # TODO : add wizzard tower here too
+                            if building.__class__.__name__ in { "Cannon" } and \
+                               ( self.closestAggressive[i][j] == {} or \
+                                    isBetter( tmpClosest, self.closestAggressive[i][j] ) ) :
+                                        self.closestAggressive[i][j] = tmpClosest
 
     def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, wall_positions, seed_ ) :
 
@@ -106,6 +112,10 @@ class Gameplay :
             raise RuntimeError("too few huts:", len(hut_positions))
         if len(cannon_positions) < 2 :
             raise RuntimeError("too few cannons:", len(cannon_positions))
+        if 2*archer_maxhealth != barbarian_maxhealth or 2*archer_damage != barbarian_damage or archer_speed != 2*barbarian_speed :
+            raise RuntimeError("archer config error")
+        if ballon_maxhealth != barbarian_maxhealth or ballon_damage != 2*barbarian_damage or ballon_speed != 2*barbarian_speed :
+            raise RuntimeError("ballon config error")
 
         self.spawns = spawns
 
@@ -116,10 +126,13 @@ class Gameplay :
         self.walls = [ Wall(pos) for pos in wall_positions ]
 
         self.closestBuilding = [ [ {} for _ in range(self.size.y) ] for _ in range(self.size.x) ]
+        self.closestAggressive = [ [ {} for _ in range(self.size.y) ] for _ in range(self.size.x) ]
         self.calcClosestBuilding()
 
         self.king = None
         self.barbarians = []
+        self.archers = []
+        self.ballons = []
 
         self.TimeToRage = 0
 
@@ -127,8 +140,16 @@ class Gameplay :
         self.king = King(self.spawns[location], UP)
         return game.checkOver()
 
-    def spawn_barbarian (self, location) :
-        self.barbarians.append( Barbarian(self.spawns[location]) )
+    def spawn (self, location) :
+        if location // 3 == 0 :
+            self.barbarians.append( Barbarian(self.spawns[location]) )
+        elif location // 3 == 1 :
+            self.archers.append( Archer(self.spawns[location%3]) )
+        elif location // 3 == 2 :
+            self.ballons.append( Ballon(self.spawns[location%3]) )
+        else :
+            print("hmm")
+            return
 
     def isColliding ( self, sprite, structs=None ) :
         if structs == None :
@@ -146,10 +167,10 @@ class Gameplay :
 
     def gameloop (self, dt) :
         self.TimeToRage = max( self.TimeToRage-dt, 0 )
-        for barbarian_ in self.barbarians :
-            if barbarian_.health > 0 :
-                barbarian_.attack()
-                barbarian_.move(dt)
+        for troop in self.barbarians + self.archers + self.ballons :
+            if troop.health > 0 :
+                troop.attack() # can it attack and move?
+                troop.move(dt)
         for cannon_ in self.buildings[CANNON] :
             if cannon_.health > 0 :
                 cannon_.shoot()
@@ -157,7 +178,7 @@ class Gameplay :
         return self.checkOver()
         
     def spell_heal ( self ) :
-        for enemy in [ game.king ] + game.barbarians :
+        for enemy in [ game.king ] + game.barbarians + game.archers + game.ballons :
             if enemy != None :
                 if enemy.health > 0 :
                     enemy.health = min( int( enemy.health * 1.5 ) , enemy.maxhealth )
@@ -166,7 +187,7 @@ class Gameplay :
         self.TimeToRage = rage_timecap
 
     def spell_rise ( self ) :
-        for enemy in [ self.king ] + self.barbarians :
+        for enemy in [ self.king ] + self.barbarians + game.archers + game.ballons :
             if enemy != None :
                 if enemy.health <= 0 :
                     enemy.health = enemy.maxhealth * 0.1
@@ -175,8 +196,8 @@ class Gameplay :
         status = INGAME
         if self.king is None :
             status = NOTSTARTED
-        elif all( barbarian_.health <= 0 for barbarian_ in self.barbarians ) and self.king.health <= 0 :
-            status = LOST
+        elif all( troop.health <= 0 for troop in self.barbarians + self.archers + self.ballons ) and self.king.health <= 0 :
+            status = LOST       # TODO show lost status only when all troops have been deployed
         elif all( building.health <= 0 for buildingtype in self.buildings for building in buildingtype ) :
             status = WON
         return status
@@ -249,7 +270,7 @@ class Cannon (Building) :
     def shoot (self) :
         def inrange (pos) :
             return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
-        for enemy in [ game.king ] + game.barbarians :
+        for enemy in [ game.king ] + game.barbarians + game.archers + game.ballons :
             if enemy != None and enemy.health > 0 and inrange ( enemy.position ) :
                 self.justShot = True
                 return enemy.attacked(self.damage)
@@ -398,6 +419,7 @@ class King (Troop) :
             for attackee in attackees :
                 attacked.append( attackee.attacked( damage ) )
             return attacked
+        return False
 
     def move (self, towards, dt) :
         def moveOnce ( dx, dy, ds ) :
@@ -443,7 +465,7 @@ class King (Troop) :
 
 class Barbarian (Troop) :
 
-    def __init__ ( self, position, ) :
+    def __init__ ( self, position ) :
         super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b', barbarian_unit )
 
     def attack (self) :
@@ -466,3 +488,81 @@ class Barbarian (Troop) :
             if game.TimeToRage > 0 :
                 damage *= 2
             return attackee.attacked( damage )
+        return False
+
+class Archer (Troop) :
+
+    def __init__ ( self, position ) :
+        super().__init__( position, archer_maxhealth, archer_damage, archer_speed, archer_size, 'a', archer_unit )
+        self.range = archer_range
+
+    def attack (self) :
+        if self.health > 0 :
+            damage = self.damage
+            if game.TimeToRage > 0 :
+                damage *= 2
+            def inrange (pos) :
+                return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
+            for struct in [ building for buildingtype in game.buildings for building in buildingtype ] + game.walls :
+                if struct != None and struct.health > 0 and inrange ( struct.position ) :
+                    return struct.attacked(damage)
+        return False
+
+class Ballon (Troop) :
+
+    def __init__ ( self, position, ) :
+        super().__init__( position, ballon_maxhealth, ballon_damage, ballon_speed, ballon_size, 'a', ballon_unit )
+
+    def attack (self) :
+        if self.health > 0 :
+            # the region around the Troop - the area that the Troop can damage
+            regposx = self.position.x - 1
+            regposy = self.position.y - 1
+            regsizx = self.size.x + 2
+            regsizy = self.size.y + 2
+
+            region = AttackRegion(
+                    XY(int(regposx) , int(regposy)),
+                    XY(int(regsizx) , int(regsizy))
+            )
+            # buildings have more priority than walls so they are checked first
+            attackee = game.isColliding(region)
+            if attackee == False :
+                return False
+            damage = self.damage
+            if game.TimeToRage > 0 :
+                damage *= 2
+            return attackee.attacked( damage )
+        return False
+
+    def move (self, dt) :
+        def moveOnce ( ds ) :
+            closest = game.closestAggressive[int(self.position.x)][int(self.position.y)]
+            if closest == {} :
+                closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
+
+            if closest != {} :
+                direction = closest["dist"]
+
+                # assert game.isColliding(self) == False
+
+                self.position.x += cmp(direction.x,0) * ds
+                if game.isColliding(self) != False :
+                    self.position.x = int(self.position.x)
+                    if game.isColliding(self) != False :
+                        self.position.x -= cmp(direction.x,0)
+
+                self.position.y += cmp(direction.y,0) * ds
+                if game.isColliding(self) != False :
+                    self.position.y = int(self.position.y)
+                    if game.isColliding(self) != False :
+                        self.position.y -= cmp(direction.y,0)
+
+        if self.health > 0 :
+            dist = self.speed * dt
+            if game.TimeToRage > 0 :
+                dist *= 2
+
+            moveOnce(dist - int(dist))
+            for _ in range(int(dist)) :
+                moveOnce(1)

@@ -44,8 +44,25 @@ king:
 
 barbarian:
   maxhealth: 50
-  damage: 15
+  damage: 16
   speed: 1
+  size:
+    x: 1
+    y: 2
+
+archer:
+  maxhealth: 25
+  damage: 8
+  speed: 2
+  range: 12
+  size:
+    x: 1
+    y: 2
+
+ballon:
+  maxhealth: 50
+  damage: 32
+  speed: 2
   size:
     x: 1
     y: 2

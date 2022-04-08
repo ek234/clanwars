@@ -6,38 +6,50 @@ townhall = [
 ]
 townhall_unit = list(zip(*townhall))
 
-hut= [
+hut = [
     [ [['⦤']], [['⦥']] ],
     [ [['Ḻ']], [['⏌']] ]
 ]
 hut_unit = list(zip(*hut))
 
-cannon= [
+cannon = [
     [ [['≔']], [['=']], [['⦻']] ]
 ]
 cannon_unit = list(zip(*cannon))
 
-wall= [
+wall = [
     [ [['█']] ]
 ]
-wall2= [
+wall2 = [
     [ [['▓']] ]
 ]
-wall3= [
+wall3 = [
     [ [['▒']] ]
 ]
-wall4= [
+wall4 = [
     [ [['░']] ]
 ]
 wall_unit = list(zip(*wall4))
 
-barbarian= [
+barbarian = [
     [ [['o']] ],
     [ [['Π']] ]
 ]
 barbarian_unit = list(zip(*barbarian))
 
-king= [
+archer = [
+    [ [['>']] ],
+    [ [['Π']] ]
+]
+archer_unit = list(zip(*archer))
+
+ballon = [
+    [ [['o']] ],
+    [ [['O']] ]
+]
+ballon_unit = list(zip(*ballon))
+
+king = [
     [ [['\\']], [['⑂']], [['/']] ],
     [ [[' ']] , [['Π']], [[' ']] ]
 

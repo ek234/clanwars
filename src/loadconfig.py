@@ -33,4 +33,15 @@ barbarian_damage = config["barbarian"]["damage"]
 barbarian_maxhealth = config["barbarian"]["maxhealth"]
 barbarian_size = XY( config["barbarian"]["size"]["x"], config["barbarian"]["size"]["y"] )
 
+archer_speed = config["archer"]["speed"]
+archer_damage = config["archer"]["damage"]
+archer_maxhealth = config["archer"]["maxhealth"]
+archer_range = config["archer"]["range"]
+archer_size = XY( config["archer"]["size"]["x"], config["archer"]["size"]["y"] )
+
+ballon_speed = config["ballon"]["speed"]
+ballon_damage = config["ballon"]["damage"]
+ballon_maxhealth = config["ballon"]["maxhealth"]
+ballon_size = XY( config["ballon"]["size"]["x"], config["ballon"]["size"]["y"] )
+
 rage_timecap = config["spell"]["rage"]["timecap"]
