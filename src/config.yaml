@@ -25,7 +25,7 @@ cannon:
     x: 3
     y: 1
   range: 8
-  damage: 10
+  damage: 5
 
 wall:
   maxhealth: 30
@@ -54,7 +54,7 @@ archer:
   maxhealth: 25
   damage: 8
   speed: 2
-  range: 12
+  range: 9
   size:
     x: 1
     y: 2
