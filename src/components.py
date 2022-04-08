@@ -370,6 +370,7 @@ class King (Troop) :
             attackees = set()
 
             if self.isAxe :
+                # manhattan distance
                 for x in range(-self.axeRange, self.axeRange+1) :
                     for y in range(-(self.axeRange - abs(x)), (self.axeRange - abs(x))+1) :
                         region = AttackRegion(
@@ -530,20 +531,15 @@ class Ballon (Troop) :
 
     def attack (self) :
         if self.health > 0 :
-            # the region around the Troop - the area that the Troop can damage
-            regposx = self.position.x - 1
-            regposy = self.position.y - 1
-            regsizx = self.size.x + 2
-            regsizy = self.size.y + 2
-
-            region = AttackRegion(
-                    XY(int(regposx) , int(regposy)),
-                    XY(int(regsizx) , int(regsizy))
-            )
-            # buildings have more priority than walls so they are checked first
-            attackee = game.isColliding(region)
+            attackee = False
+            if game.closestAggressive[int(self.position.x)][int(self.position.y)] == {} :
+                attackee = game.isColliding(self, game.buildings[TOWNHALL]+game.buildings[HUT])
+            else :
+                # TODO : add wiz tower
+                attackee = game.isColliding(self, game.buildings[CANNON])
             if attackee == False :
                 return False
+
             damage = self.damage
             if game.TimeToRage > 0 :
                 damage *= 2
@@ -559,19 +555,8 @@ class Ballon (Troop) :
             if closest != {} :
                 direction = closest["dist"]
 
-                # assert game.isColliding(self) == False
-
                 self.position.x += cmp(direction.x,0) * ds
-                if game.isColliding(self) != False :
-                    self.position.x = int(self.position.x)
-                    if game.isColliding(self) != False :
-                        self.position.x -= cmp(direction.x,0)
-
                 self.position.y += cmp(direction.y,0) * ds
-                if game.isColliding(self) != False :
-                    self.position.y = int(self.position.y)
-                    if game.isColliding(self) != False :
-                        self.position.y -= cmp(direction.y,0)
 
         if self.health > 0 :
             dist = self.speed * dt
