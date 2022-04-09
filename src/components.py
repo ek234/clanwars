@@ -270,7 +270,7 @@ class Cannon (Building) :
     def shoot (self) :
         def inrange (pos) :
             return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
-        for enemy in [ game.king ] + game.barbarians + game.archers + game.ballons :
+        for enemy in [ game.king ] + game.barbarians + game.archers :
             if enemy != None and enemy.health > 0 and inrange ( enemy.position ) :
                 self.justShot = True
                 return enemy.attacked(self.damage)
