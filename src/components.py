@@ -515,13 +515,11 @@ class Queen (Player) :
                 else :
                     raise RuntimeError("unknown direction")
 
-                region = AttackRegion(
-                        XY(int(regposx) , int(regposy)),
-                        XY(int(regsizx) , int(regsizy))
-                )
-                attackee = game.isColliding(region)
-                if attackee != False :
-                    attackees.add(attackee)
+                for x in range(int(regposx), int(regposx+regsizx)) :
+                    for y in range(int(regposy), int(regposy+regsizy)) :
+                        attackee = game.isColliding( AttackRegion( XY(x,y), XY(1,1) ) )
+                        if attackee != False :
+                            attackees.add(attackee)
 
             # TODO : add secondary attack
 #            else :
