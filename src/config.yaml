@@ -10,8 +10,8 @@ display:
 townhall:
   maxhealth: 300
   size:
-    x: 8
-    y: 5
+    x: 4
+    y: 3
 
 hut:
   maxhealth: 100
