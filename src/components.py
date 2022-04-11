@@ -167,10 +167,10 @@ class Gameplay :
             # buildings have more priorities than walls- so in attack_region, buildings will show up first
             structs = [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls
         for struct in structs :
-            if sprite.position.x + sprite.size.x <= struct.position.x or \
-               sprite.position.x >= struct.position.x + struct.size.x or \
-               sprite.position.y + sprite.size.y <= struct.position.y or \
-               sprite.position.y >= struct.position.y + struct.size.y or \
+            if int( sprite.position.x + sprite.size.x ) <= int( struct.position.x ) or \
+               int( sprite.position.x ) >= int( struct.position.x + struct.size.x ) or \
+               int( sprite.position.y + sprite.size.y ) <= int( struct.position.y ) or \
+               int( sprite.position.y ) >= int( struct.position.y + struct.size.y ) or \
                struct.health <= 0 :
                 continue
             return struct
@@ -181,7 +181,8 @@ class Gameplay :
         for troop in self.barbarians + self.archers + self.ballons :
             if troop.health > 0 :
                 if troop.attack() == None :
-                    troop.move(dt)
+                    if troop.move(dt) != True :
+                        troop.attack( isStuck=True )
         for cannon_ in self.buildings[CANNON] :
             if cannon_.health > 0 :
                 cannon_.shoot()
@@ -322,26 +323,33 @@ class Troop :
 
                 # assert game.isColliding(self) == False
 
+                moved = True
+
                 self.position.x += cmp(direction.x,0) * ds
                 if game.isColliding(self) != False :
+                    moved = False
                     self.position.x = int(self.position.x)
                     if game.isColliding(self) != False :
                         self.position.x -= cmp(direction.x,0)
 
                 self.position.y += cmp(direction.y,0) * ds
                 if game.isColliding(self) != False :
+                    moved = False
                     self.position.y = int(self.position.y)
                     if game.isColliding(self) != False :
                         self.position.y -= cmp(direction.y,0)
+
+                return moved
 
         if self.health > 0 :
             dist = self.speed * dt
             if game.TimeToRage > 0 :
                 dist *= 2
 
-            moveOnce(dist - int(dist))
+            ret = moveOnce(dist - int(dist))
             for _ in range(int(dist)) :
-                moveOnce(1)
+                ret = moveOnce(1)
+            return ret
 
     def print (self) :
         color = FG.CYAN
@@ -552,7 +560,7 @@ class Barbarian (Troop) :
     def __init__ ( self, position ) :
         super().__init__( position, barbarian_maxhealth, barbarian_damage, barbarian_speed, barbarian_size, 'b', barbarian_unit )
 
-    def attack (self) :
+    def attack (self, isStuck=False) :
         if self.health > 0 :
             closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
             if closest != {} :
@@ -573,6 +581,12 @@ class Barbarian (Troop) :
                 elif direction.y > 0 :
                     regposy += self.size.y
                     regsizy = 1
+
+                if isStuck :
+                    regposx = self.position.x - 1
+                    regposy = self.position.y - 1
+                    regsizx = self.size.x + 2
+                    regsizy = self.size.y + 2
 
                 region = AttackRegion(
                         XY(int(regposx) , int(regposy)),
@@ -595,16 +609,26 @@ class Archer (Troop) :
         super().__init__( position, archer_maxhealth, archer_damage, archer_speed, archer_size, 'a', archer_unit )
         self.range = archer_range
 
-    def attack (self) :
+    def attack (self, isStuck=False) :
         if self.health > 0 :
-            damage = self.damage
-            if game.TimeToRage > 0 :
-                damage *= 2
-            def inrange (pos) :
-                return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
-            for struct in [ building for buildingtype in game.buildings for building in buildingtype ] + game.walls :
-                if struct != None and struct.health > 0 and inrange ( struct.position ) :
-                    return struct.attacked(damage)
+            closest = game.closestBuilding[int(self.position.x)][int(self.position.y)]
+            if closest != {} :
+                direction = closest["dist"]
+
+                damage = self.damage
+                if game.TimeToRage > 0 :
+                    damage *= 2
+                def inrange (pos) :
+                    if isStuck :
+                        return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) < 2
+                    return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range and direction.x * (pos.x-self.position.x) >= 0 and direction.y * (pos.y-self.position.y) >= 0
+
+                structs = [ building for buildingtype in game.buildings for building in buildingtype ]
+                if isStuck :
+                    structs += game.walls
+                for struct in structs :
+                    if struct != None and struct.health > 0 and inrange ( struct.position ) :
+                        return struct.attacked(damage)
         return None
 
 class Ballon (Troop) :
@@ -649,3 +673,5 @@ class Ballon (Troop) :
             moveOnce(dist - int(dist))
             for _ in range(int(dist)) :
                 moveOnce(1)
+
+        return True
