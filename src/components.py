@@ -135,7 +135,7 @@ class Gameplay :
             raise RuntimeError("ballon config error")
         if queen_damage >= king_damage :
             raise RuntimeError("queen config error")
-        if tower_range == cannon_range and tower_damage == cannon_damage :
+        if tower_range != cannon_range or tower_damage != cannon_damage :
             raise RuntimeError("tower config error")
 
         self.spawns = spawns
