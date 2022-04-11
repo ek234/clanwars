@@ -29,6 +29,11 @@ cannons_at = [
     XY(50,17)
 ]
 
+towers_at = [
+    XY(20,13),
+    XY(40,8)
+]
+
 walls_at = [
     XY(45,10),
     XY(46,10),

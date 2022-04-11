@@ -2,10 +2,10 @@ from copy import copy as cp
 from loadconfig import *
 from utils import dist, cmp
 from utils import UP, RIGHT, DOWN, LEFT
-from utils import num_buildingtype, TOWNHALL, HUT, CANNON
+from utils import num_buildingtype, TOWNHALL, HUT, CANNON, TOWER
 from utils import NOTSTARTED, INGAME, WON, LOST
 from utils import XY, AttackRegion
-from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit, queen_unit, archer_unit, ballon_unit
+from sprites import townhall_unit, hut_unit, cannon_unit, tower_unit, wall_unit, barbarian_unit, king_unit, queen_unit, archer_unit, ballon_unit
 from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST, ansi
 from random import random as rnd
 from random import seed
@@ -100,13 +100,12 @@ class Gameplay :
                             if self.closestBuilding[i][j] == {} or \
                                     isBetter( tmpClosest, self.closestBuilding[i][j] ) :
                                         self.closestBuilding[i][j] = tmpClosest
-                            # TODO : add wizzard tower here too
-                            if building.__class__.__name__ in { "Cannon" } and \
+                            if building.__class__.__name__ in { "Cannon", "Tower" } and \
                                ( self.closestAggressive[i][j] == {} or \
                                     isBetter( tmpClosest, self.closestAggressive[i][j] ) ) :
                                         self.closestAggressive[i][j] = tmpClosest
 
-    def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, wall_positions, seed_ ) :
+    def gameInit ( self, spawns, townhall_positions, hut_positions, cannon_positions, tower_positions, wall_positions, seed_ ) :
 
         seed(seed_)
         
@@ -118,12 +117,16 @@ class Gameplay :
             raise RuntimeError("too few huts:", len(hut_positions))
         if len(cannon_positions) < 2 :
             raise RuntimeError("too few cannons:", len(cannon_positions))
+        if len(tower_positions) < 2 :
+            raise RuntimeError("too few towers:", len(tower_positions))
         if 2*archer_maxhealth != barbarian_maxhealth or 2*archer_damage != barbarian_damage or archer_speed != 2*barbarian_speed :
             raise RuntimeError("archer config error")
         if ballon_maxhealth != barbarian_maxhealth or ballon_damage != 2*barbarian_damage or ballon_speed != 2*barbarian_speed :
             raise RuntimeError("ballon config error")
         if queen_damage >= king_damage :
             raise RuntimeError("queen config error")
+        if tower_range == cannon_range and tower_damage == cannon_damage :
+            raise RuntimeError("tower config error")
 
         self.spawns = spawns
 
@@ -131,6 +134,7 @@ class Gameplay :
         self.buildings[TOWNHALL] = [ Townhall(pos) for pos in townhall_positions ]
         self.buildings[HUT] = [ Hut(pos) for pos in hut_positions ]
         self.buildings[CANNON] = [ Cannon(pos) for pos in cannon_positions ]
+        self.buildings[TOWER] = [ Tower(pos) for pos in tower_positions ]
         self.walls = [ Wall(pos) for pos in wall_positions ]
 
         self.closestBuilding = [ [ {} for _ in range(self.size.y) ] for _ in range(self.size.x) ]
@@ -176,7 +180,7 @@ class Gameplay :
             return struct
         return False
 
-    def gameloop (self, dt) :
+    def gameloop (self, dt, ite) :
         self.TimeToRage = max( self.TimeToRage-dt, 0 )
         for troop in self.barbarians + self.archers + self.ballons :
             if troop.health > 0 :
@@ -186,6 +190,10 @@ class Gameplay :
         for cannon_ in self.buildings[CANNON] :
             if cannon_.health > 0 :
                 cannon_.shoot()
+        if ite % 3 == 0 :
+            for tower_ in self.buildings[TOWER] :
+                if tower_.health > 0 :
+                    tower_.shoot()
         self.print()
         return self.checkOver()
         
@@ -247,7 +255,7 @@ class Building :
             if self.wasHurt :
                 self.wasHurt = False
                 # color = FG.BLACK
-            if self.__class__.__name__ == "Cannon" and self.justShot :
+            if self.__class__.__name__ in { "Cannon", "Tower" } and self.justShot :
                 self.justShot = False
                 color += BG.WHITE
             for i in range(self.size.x):
@@ -286,6 +294,30 @@ class Cannon (Building) :
             if enemy != None and enemy.health > 0 and inrange ( enemy.position ) :
                 self.justShot = True
                 return enemy.attacked(self.damage)
+
+
+class Tower (Building) :
+
+    def __init__ ( self, position ) :
+        super().__init__( tower_maxhealth, position, tower_size, 'T', tower_unit )
+        self.range = cp(tower_range)
+        self.radius = cp(tower_radius)
+        self.damage = cp(tower_damage)
+        self.justShot = False
+
+    def shoot (self) :
+        def inrange (pos) :
+            return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
+        attackees = set()
+        for enemy in [ game.player ] + game.barbarians + game.archers + game.ballons :
+            if enemy != None and enemy.health > 0 and inrange ( enemy.position ) :
+                self.justShot = True
+                for enemy_ in [ game.player ] + game.barbarians + game.archers + game.ballons :
+                    # manhattan distance
+                    if enemy_ != None and enemy_.health > 0 and ( max(abs(int(enemy_.position.x)-int(enemy.position.x)),abs(int(enemy_.position.y)-int(enemy.position.y))) <= self.radius ) :
+                        attackees.add(enemy_.attacked(self.damage))
+                return attackees
+        return None
 
 
 class Wall (Building) :
@@ -642,8 +674,7 @@ class Ballon (Troop) :
             if game.closestAggressive[int(self.position.x)][int(self.position.y)] == {} :
                 attackee = game.isColliding(self, game.buildings[TOWNHALL]+game.buildings[HUT])
             else :
-                # TODO : add wiz tower
-                attackee = game.isColliding(self, game.buildings[CANNON])
+                attackee = game.isColliding(self, [] + game.buildings[CANNON] + game.buildings[TOWER])
             if attackee == False :
                 return None
 

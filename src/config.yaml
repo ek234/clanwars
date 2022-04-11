@@ -10,8 +10,8 @@ display:
 townhall:
   maxhealth: 300
   size:
-    x: 4
-    y: 3
+    x: 8
+    y: 5
 
 hut:
   maxhealth: 100
@@ -25,6 +25,15 @@ cannon:
     x: 3
     y: 1
   range: 8
+  damage: 5
+
+tower:
+  maxhealth: 200
+  size:
+    x: 4
+    y: 3
+  range: 10
+  radius: 1
   damage: 5
 
 wall:

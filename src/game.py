@@ -2,7 +2,7 @@ import os
 import time
 import pickle
 from components import game
-from initialState import spawns, townhalls_at, huts_at, cannons_at, walls_at
+from stage1 import spawns, townhalls_at, huts_at, cannons_at, towers_at, walls_at
 from utils import CHANGE_WEAPON
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import SPELL_RAGE, SPELL_HEAL, SPELL_RISE
@@ -20,7 +20,7 @@ filename = str(time.time())+".rpl"
 saveData = {}
 saveData["moves"] = {}
 
-game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at, seed )
+game.gameInit( spawns, townhalls_at, huts_at, cannons_at, towers_at, walls_at, seed )
 saveData["seed"] = seed
 
 isKing = None
@@ -76,7 +76,7 @@ while gameState is INGAME :
     elif inp == '/' :
         break
 
-    gameState = game.gameloop(timePerFrame)
+    gameState = game.gameloop(timePerFrame, ite)
 
 saveData["num_ite"] = ite
 

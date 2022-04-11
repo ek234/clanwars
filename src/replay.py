@@ -2,7 +2,7 @@ import os
 import time
 import pickle
 from components import game
-from initialState import spawns, townhalls_at, huts_at, cannons_at, walls_at
+from stage1 import spawns, townhalls_at, huts_at, cannons_at, towers_at, walls_at
 from utils import CHANGE_WEAPON
 from utils import UP, RIGHT, DOWN, LEFT
 from utils import SPELL_RAGE, SPELL_HEAL, SPELL_RISE
@@ -22,7 +22,7 @@ while True :
         break
 os.system("stty -echo")
 
-game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at, saveData["seed"] )
+game.gameInit( spawns, townhalls_at, huts_at, cannons_at, towers_at, walls_at, saveData["seed"] )
 
 isKing = saveData["isKing"]
 
@@ -63,7 +63,7 @@ while gameState is INGAME :
     elif inp == '/' :
         break
 
-    gameState = game.gameloop(timePerFrame)
+    gameState = game.gameloop(timePerFrame, ite)
 
     if ite > saveData["num_ite"] :
         break

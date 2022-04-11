@@ -1,4 +1,4 @@
-num_buildingtype = 3
+num_buildingtype = 4
 num_spells = 2
 
 CHANGE_WEAPON = 'e'
@@ -11,7 +11,7 @@ SPELL_RAGE, SPELL_HEAL, SPELL_RISE = 'c', 'x', 'z'
 SPELL_RAGE, SPELL_HEAL, SPELL_RISE = 'j', 'q', ';'
 
 # enum
-TOWNHALL, HUT, CANNON = range(num_buildingtype)
+TOWNHALL, HUT, CANNON, TOWER = range(num_buildingtype)
 NOTSTARTED, INGAME, WON, LOST = range(-1,3)
 
 class XY :

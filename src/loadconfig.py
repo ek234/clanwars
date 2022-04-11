@@ -22,6 +22,12 @@ cannon_range = config["cannon"]["range"]
 cannon_damage = config["cannon"]["damage"]
 cannon_size = XY( config["cannon"]["size"]["x"], config["cannon"]["size"]["y"] )
 
+tower_maxhealth = config["tower"]["maxhealth"]
+tower_range = config["tower"]["range"]
+tower_radius = config["tower"]["radius"]
+tower_damage = config["tower"]["damage"]
+tower_size = XY( config["tower"]["size"]["x"], config["tower"]["size"]["y"] )
+
 king_speed = config["king"]["speed"]
 king_damage = config["king"]["damage"]
 king_maxhealth = config["king"]["maxhealth"]
