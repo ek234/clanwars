@@ -23,14 +23,19 @@ saveData["moves"] = {}
 game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at, seed )
 saveData["seed"] = seed
 
+isKing = None
+while isKing not in { "k", "q" } :
+    isKing = input("press k for king and q for queen : ")
+isKing = isKing == "k"
+saveData["isKing"] = isKing
 inp = None
 while inp not in { 0, 1, 2 } :
     try :
-        inp = int(input("spawn king at 1, 2 or 3: ")) - 1
+        inp = int(input("spawn player at 1, 2 or 3: ")) - 1
     except :
         inp = None
-gameState = game.gameStart(inp)
-saveData["kingSpawn"] = inp
+gameState = game.gameStart(inp, isKing)
+saveData["playerSpawn"] = inp
 
 os.system("stty -echo")
 
@@ -52,14 +57,14 @@ while gameState is INGAME :
         saveData["moves"][ite] = inp
 
     if inp == " " :
-        if game.king != None :
-            game.king.attack()
+        if game.player != None :
+            game.player.attack()
     elif inp == CHANGE_WEAPON :
-        if game.king != None :
-            game.king.isAxe = not game.king.isAxe
+        if game.player != None :
+            game.player.switchWeapon()
     elif inp in { UP, LEFT, DOWN, RIGHT } :
-        if game.king != None :
-            game.king.move(inp, timePerFrame)
+        if game.player != None :
+            game.player.move(inp, timePerFrame)
     elif inp in {'1','2','3', '4', '5', '6', '7', '8', '9'} :
         game.spawn(int(inp)-1)
     elif inp == SPELL_HEAL :

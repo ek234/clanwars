@@ -5,7 +5,7 @@ from utils import UP, RIGHT, DOWN, LEFT
 from utils import num_buildingtype, TOWNHALL, HUT, CANNON
 from utils import NOTSTARTED, INGAME, WON, LOST
 from utils import XY, AttackRegion
-from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit, archer_unit, ballon_unit
+from sprites import townhall_unit, hut_unit, cannon_unit, wall_unit, barbarian_unit, king_unit, queen_unit, archer_unit, ballon_unit
 from colorama import init as coloramaInit, Fore as FG, Back as BG, Style as ST, ansi
 from random import random as rnd
 from random import seed
@@ -27,7 +27,7 @@ class Gameplay :
         for struct in [ building for buildingtype in self.buildings for building in buildingtype ] + self.walls :
             if struct.health > 0 :
                 struct.print()
-        for enemy in [ self.king ] + self.barbarians + self.archers + self.ballons :
+        for enemy in [ self.player ] + self.barbarians + self.archers + self.ballons :
             if enemy != None :
                 enemy.print()
 
@@ -42,21 +42,27 @@ class Gameplay :
                     char = "·↓↗→↘↖←↙↑"[dire]
                 toprint += char + ST.RESET_ALL
             if j == self.size.y // 4 :
-                if self.king != None :
-                    toprint += "king's health: " + str(self.king.health)
+                if self.player != None :
+                    toprint += "player's health: " + str(self.player.health)
             if j == self.size.y // 4 + 1:
-                if self.king != None :
+                if self.player != None :
                     toprint += "weapon:"
-                    if self.king.isAxe :
-                        toprint += "axe"
+                    if self.player.__class__.__name__ == "King" :
+                        if self.player.isPrimaryWeapon :
+                            toprint += "sword"
+                        else :
+                            toprint += "axe"
                     else :
-                        toprint += "sword"
+                        if self.player.isPrimaryWeapon :
+                            toprint += "volley"
+                        else :
+                            toprint += "eagle"
             if j == self.size.y // 2 :
                 toprint += "Keybinds:"
             if j == self.size.y // 2 + 1 :
                 toprint += "1/2/3: spawn"
             if j == self.size.y // 2 + 2 :
-                toprint += "w/a/s/d: king"
+                toprint += "w/a/s/d: player"
             if j == self.size.y // 2 + 3 :
                 toprint += "e: change weapon"
             if j == self.size.y // 2 + 4 :
@@ -129,15 +135,18 @@ class Gameplay :
         self.closestAggressive = [ [ {} for _ in range(self.size.y) ] for _ in range(self.size.x) ]
         self.calcClosestBuilding()
 
-        self.king = None
+        self.player = None
         self.barbarians = []
         self.archers = []
         self.ballons = []
 
         self.TimeToRage = 0
 
-    def gameStart (self, location) :
-        self.king = King(self.spawns[location], UP)
+    def gameStart (self, location, isKing) :
+        if isKing :
+            self.player = King(self.spawns[location], UP)
+        else :
+            self.player = Queen(self.spawns[location], UP)
         return game.checkOver()
 
     def spawn (self, location) :
@@ -178,7 +187,7 @@ class Gameplay :
         return self.checkOver()
         
     def spell_heal ( self ) :
-        for enemy in [ game.king ] + game.barbarians + game.archers + game.ballons :
+        for enemy in [ game.player ] + game.barbarians + game.archers + game.ballons :
             if enemy != None :
                 if enemy.health > 0 :
                     enemy.health = min( int( enemy.health * 1.5 ) , enemy.maxhealth )
@@ -187,16 +196,16 @@ class Gameplay :
         self.TimeToRage = rage_timecap
 
     def spell_rise ( self ) :
-        for enemy in [ self.king ] + self.barbarians + game.archers + game.ballons :
+        for enemy in [ self.player ] + self.barbarians + game.archers + game.ballons :
             if enemy != None :
                 if enemy.health <= 0 :
                     enemy.health = enemy.maxhealth * 0.1
 
     def checkOver (self) :
         status = INGAME
-        if self.king is None :
+        if self.player is None :
             status = NOTSTARTED
-        elif all( troop.health <= 0 for troop in self.barbarians + self.archers + self.ballons ) and self.king.health <= 0 :
+        elif all( troop.health <= 0 for troop in self.barbarians + self.archers + self.ballons ) and self.player.health <= 0 :
             status = LOST       # TODO show lost status only when all troops have been deployed
         elif all( building.health <= 0 for buildingtype in self.buildings for building in buildingtype ) :
             status = WON
@@ -270,7 +279,7 @@ class Cannon (Building) :
     def shoot (self) :
         def inrange (pos) :
             return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range
-        for enemy in [ game.king ] + game.barbarians + game.archers :
+        for enemy in [ game.player ] + game.barbarians + game.archers :
             if enemy != None and enemy.health > 0 and inrange ( enemy.position ) :
                 self.justShot = True
                 return enemy.attacked(self.damage)
@@ -357,70 +366,16 @@ class Troop :
                             for uj in range(game.unitsize.y):
                                 game.grid[int(self.position.x+i)][int(self.position.y+j)][ui][uj] = color + self.unit[i][j][ui][uj] + ST.RESET_ALL
 
-class King (Troop) :
+class Player (Troop) :
 
-    def __init__ ( self, position, direction ) :
-        super().__init__( position, king_maxhealth, king_damage, king_speed, king_size, 'K', king_unit )
+    def __init__ ( self, position, direction, maxhealth, damage, speed, size, char, unit ) :
+
+        super().__init__( position, maxhealth, damage, speed, size, char, unit )
+        self.isPrimaryWeapon = False
         self.direction = direction
-        self.isAxe = True
-        self.axeRange = king_axeRange
 
-    def attack ( self ) :
-        if self.health > 0 :
-            attackees = set()
-
-            if self.isAxe :
-                # manhattan distance
-                for x in range(-self.axeRange, self.axeRange+1) :
-                    for y in range(-(self.axeRange - abs(x)), (self.axeRange - abs(x))+1) :
-                        region = AttackRegion(
-                                XY(int(self.position.x)+x,int(self.position.y)+y),
-                                XY(1,1)
-                        )
-                        attackee = game.isColliding(region)
-                        if attackee != False :
-                            attackees.add(attackee)
-
-            else :
-                regposx = self.position.x
-                regposy = self.position.y
-                regsizx = self.size.x
-                regsizy = self.size.y
-                if self.direction == UP :
-                    regposy -= 1
-                    regsizy = 1
-                elif self.direction == LEFT :
-                    regposx -= 1
-                    regsizx = 1
-                elif self.direction == DOWN :
-                    regposy += self.size.y
-                    regsizy = 1
-                elif self.direction == RIGHT :
-                    regposx += self.size.x
-                    regsizx = 1
-                else :
-                    raise RuntimeError("unknown direction")
-
-                region = AttackRegion(
-                        XY(int(regposx) , int(regposy)),
-                        XY(int(regsizx) , int(regsizy))
-                )
-                attackee = game.isColliding(region)
-                if attackee != False :
-                    attackees.add(attackee)
-
-            if len(attackees) == 0 :
-                return None
-
-            damage = self.damage
-            if game.TimeToRage > 0 :
-                damage *= 2
-
-            attacked = []
-            for attackee in attackees :
-                attacked.append( attackee.attacked( damage ) )
-            return attacked
-        return None
+    def switchWeapon (self) :
+        self.isPrimaryWeapon = not self.isPrimaryWeapon
 
     def move (self, towards, dt) :
         def moveOnce ( dx, dy, ds ) :
@@ -463,6 +418,134 @@ class King (Troop) :
             moveOnce( dx, dy, dis - int(dis) )
             for _ in range(int(dis)) :
                 moveOnce( dx, dy, 1 )
+
+class King (Player) :
+
+    def __init__ ( self, position, direction ) :
+        super().__init__( position, direction, king_maxhealth, king_damage, king_speed, king_size, 'K', king_unit )
+        self.axeRange = king_axeRange
+
+    def attack ( self ) :
+        if self.health > 0 :
+            attackees = set()
+
+            if self.isPrimaryWeapon :
+                regposx = self.position.x
+                regposy = self.position.y
+                regsizx = self.size.x
+                regsizy = self.size.y
+                if self.direction == UP :
+                    regposy -= 1
+                    regsizy = 1
+                elif self.direction == LEFT :
+                    regposx -= 1
+                    regsizx = 1
+                elif self.direction == DOWN :
+                    regposy += self.size.y
+                    regsizy = 1
+                elif self.direction == RIGHT :
+                    regposx += self.size.x
+                    regsizx = 1
+                else :
+                    raise RuntimeError("unknown direction")
+
+                region = AttackRegion(
+                        XY(int(regposx) , int(regposy)),
+                        XY(int(regsizx) , int(regsizy))
+                )
+                attackee = game.isColliding(region)
+                if attackee != False :
+                    attackees.add(attackee)
+
+            else :
+                # manhattan distance
+                for x in range(-self.axeRange, self.axeRange+1) :
+                    for y in range(-(self.axeRange - abs(x)), (self.axeRange - abs(x))+1) :
+                        region = AttackRegion(
+                                XY(int(self.position.x)+x,int(self.position.y)+y),
+                                XY(1,1)
+                        )
+                        attackee = game.isColliding(region)
+                        if attackee != False :
+                            attackees.add(attackee)
+
+            if len(attackees) == 0 :
+                return None
+
+            damage = self.damage
+            if game.TimeToRage > 0 :
+                damage *= 2
+
+            attacked = []
+            for attackee in attackees :
+                attacked.append( attackee.attacked( damage ) )
+            return attacked
+        return None
+
+class Queen (Player) :
+
+    def __init__ ( self, position, direction ) :
+        super().__init__( position, direction, queen_maxhealth, queen_damage, queen_speed, queen_size, 'Q', queen_unit )
+        self.range = queen_range
+        self.radius = queen_radius
+
+    def attack ( self ) :
+        if self.health > 0 :
+            attackees = set()
+
+            if self.isPrimaryWeapon :
+                regposx = self.position.x
+                regposy = self.position.y
+                regsizx = 2*self.radius + 1
+                regsizy = 2*self.radius + 1
+                if self.direction == UP :
+                    regposx -= self.radius
+                    regposy -= self.range + self.radius
+                elif self.direction == LEFT :
+                    regposx -= self.range + self.radius
+                    regposy -= self.radius
+                elif self.direction == DOWN :
+                    regposx -= self.radius
+                    regposy += self.size.y + self.range - self.radius
+                elif self.direction == RIGHT :
+                    regposx += self.size.x + self.range - self.radius
+                    regposy -= self.radius
+                else :
+                    raise RuntimeError("unknown direction")
+
+                region = AttackRegion(
+                        XY(int(regposx) , int(regposy)),
+                        XY(int(regsizx) , int(regsizy))
+                )
+                attackee = game.isColliding(region)
+                if attackee != False :
+                    attackees.add(attackee)
+
+            # TODO : add secondary attack
+#            else :
+#                # manhattan distance
+#                for x in range(-self.axeRange, self.axeRange+1) :
+#                    for y in range(-(self.axeRange - abs(x)), (self.axeRange - abs(x))+1) :
+#                        region = AttackRegion(
+#                                XY(int(self.position.x)+x,int(self.position.y)+y),
+#                                XY(1,1)
+#                        )
+#                        attackee = game.isColliding(region)
+#                        if attackee != False :
+#                            attackees.add(attackee)
+
+            if len(attackees) == 0 :
+                return None
+
+            damage = self.damage
+            if game.TimeToRage > 0 :
+                damage *= 2
+
+            attacked = []
+            for attackee in attackees :
+                attacked.append( attackee.attacked( damage ) )
+            return attacked
+        return None
 
 class Barbarian (Troop) :
 

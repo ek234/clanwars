@@ -24,7 +24,9 @@ os.system("stty -echo")
 
 game.gameInit( spawns, townhalls_at, huts_at, cannons_at, walls_at, saveData["seed"] )
 
-gameState = game.gameStart(saveData["kingSpawn"])
+isKing = saveData["isKing"]
+
+gameState = game.gameStart(saveData["playerSpawn"], isKing)
 
 ite = 0
 prevFrameTime = time.time()
@@ -41,14 +43,14 @@ while gameState is INGAME :
         inp = saveData["moves"][ite]
 
     if inp == " " :
-        if game.king != None :
-            game.king.attack()
+        if game.player != None :
+            game.player.attack()
     elif inp == CHANGE_WEAPON :
-        if game.king != None :
-            game.king.isAxe = not game.king.isAxe
+        if game.player != None :
+            game.player.switchWeapon()
     elif inp in { UP, LEFT, DOWN, RIGHT } :
-        if game.king != None :
-            game.king.move(inp, timePerFrame)
+        if game.player != None :
+            game.player.move(inp, timePerFrame)
     elif inp in {'1','2','3', '4', '5', '6', '7', '8', '9'} :
         assert inp != None
         game.spawn(int(inp)-1)

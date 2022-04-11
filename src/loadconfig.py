@@ -25,8 +25,15 @@ cannon_size = XY( config["cannon"]["size"]["x"], config["cannon"]["size"]["y"] )
 king_speed = config["king"]["speed"]
 king_damage = config["king"]["damage"]
 king_maxhealth = config["king"]["maxhealth"]
-king_axeRange = config["king"]["axeRange"]
+king_axeRange = config["king"]["range"]
 king_size = XY( config["king"]["size"]["x"], config["king"]["size"]["y"] )
+
+queen_speed = config["queen"]["speed"]
+queen_damage = config["queen"]["damage"]
+queen_maxhealth = config["queen"]["maxhealth"]
+queen_range = config["queen"]["range"]
+queen_radius = config["queen"]["radius"]
+queen_size = XY( config["queen"]["size"]["x"], config["queen"]["size"]["y"] )
 
 barbarian_speed = config["barbarian"]["speed"]
 barbarian_damage = config["barbarian"]["damage"]
