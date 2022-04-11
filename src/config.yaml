@@ -68,6 +68,7 @@ barbarian:
   size:
     x: 1
     y: 2
+  maxnum: 10
 
 archer:
   maxhealth: 25
@@ -77,6 +78,7 @@ archer:
   size:
     x: 1
     y: 2
+  maxnum: 2
 
 ballon:
   maxhealth: 50
@@ -85,6 +87,7 @@ ballon:
   size:
     x: 1
     y: 2
+  maxnum: 3
 
 spell:
   rage:

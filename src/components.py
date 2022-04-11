@@ -21,6 +21,7 @@ class Gameplay :
         self.unitsize = unitsize
         self.fps = fps
         self.defchar = bgchar
+        self.maxnums = { "Barbarian": barbarian_maxnum, "Archer": archer_maxnum, "Ballon": ballon_maxnum }
 
     def print (self) :
         self.grid = [ [ [ [ self.defchar for _ in range(self.unitsize.y) ] for _ in range(self.unitsize.x) ] for _ in range(self.size.y) ] for _ in range(self.size.x) ]
@@ -57,24 +58,33 @@ class Gameplay :
                             toprint += "volley"
                         else :
                             toprint += "eagle"
-            if j == self.size.y // 2 :
+            if j == self.size.y // 2 - 1 :
                 toprint += "Keybinds:"
-            if j == self.size.y // 2 + 1 :
+            if j == self.size.y // 2 + 0 :
                 toprint += "1/2/3: spawn"
-            if j == self.size.y // 2 + 2 :
+            if j == self.size.y // 2 + 1 :
                 toprint += "w/a/s/d: player"
-            if j == self.size.y // 2 + 3 :
+            if j == self.size.y // 2 + 2 :
                 toprint += "e: change weapon"
-            if j == self.size.y // 2 + 4 :
+            if j == self.size.y // 2 + 3 :
                 toprint += "<space>: attack"
-            if j == self.size.y // 2 + 5 :
+            if j == self.size.y // 2 + 4 :
                 toprint += "x: heal"
-            if j == self.size.y // 2 + 6 :
+            if j == self.size.y // 2 + 5 :
                 toprint += "c: rage"
-            if j == self.size.y // 2 + 7 :
+            if j == self.size.y // 2 + 6 :
                 toprint += "z: rise"
-            if j == self.size.y // 2 + 8 :
+            if j == self.size.y // 2 + 7 :
                 toprint += "[: quit"
+
+            if j == self.size.y // 2 + 9 :
+                toprint += "Troops left"
+            if j == self.size.y // 2 + 10 :
+                toprint += "\tBarbarians: " + str(self.maxnums["Barbarian"] - len(self.barbarians))
+            if j == self.size.y // 2 + 11 :
+                toprint += "\tArchers: " + str(self.maxnums["Archer"] - len(self.archers))
+            if j == self.size.y // 2 + 12 :
+                toprint += "\tBallons: " + str(self.maxnums["Ballon"] - len(self.ballons))
             toprint += "\n"
         print( toprint )
 
@@ -157,11 +167,14 @@ class Gameplay :
 
     def spawn (self, location) :
         if location // 3 == 0 :
-            self.barbarians.append( Barbarian(self.spawns[location]) )
+            if game.maxnums["Barbarian"] > len(game.barbarians) :
+                self.barbarians.append( Barbarian(self.spawns[location]) )
         elif location // 3 == 1 :
-            self.archers.append( Archer(self.spawns[location%3]) )
+            if game.maxnums["Archer"] > len(game.archers) :
+                self.archers.append( Archer(self.spawns[location%3]) )
         elif location // 3 == 2 :
-            self.ballons.append( Ballon(self.spawns[location%3]) )
+            if game.maxnums["Ballon"] > len(game.ballons) :
+                self.ballons.append( Ballon(self.spawns[location%3]) )
         else :
             print("hmm")
             return
