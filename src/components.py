@@ -169,8 +169,8 @@ class Gameplay :
         self.TimeToRage = max( self.TimeToRage-dt, 0 )
         for troop in self.barbarians + self.archers + self.ballons :
             if troop.health > 0 :
-                troop.attack() # can it attack and move?
-                troop.move(dt)
+                if troop.attack() == None :
+                    troop.move(dt)
         for cannon_ in self.buildings[CANNON] :
             if cannon_.health > 0 :
                 cannon_.shoot()
@@ -410,7 +410,7 @@ class King (Troop) :
                     attackees.add(attackee)
 
             if len(attackees) == 0 :
-                return False
+                return None
 
             damage = self.damage
             if game.TimeToRage > 0 :
@@ -420,7 +420,7 @@ class King (Troop) :
             for attackee in attackees :
                 attacked.append( attackee.attacked( damage ) )
             return attacked
-        return False
+        return None
 
     def move (self, towards, dt) :
         def moveOnce ( dx, dy, ds ) :
@@ -499,12 +499,12 @@ class Barbarian (Troop) :
                 # buildings have more priority than walls so they are checked first
                 attackee = game.isColliding(region)
                 if attackee == False :
-                    return False
+                    return None
                 damage = self.damage
                 if game.TimeToRage > 0 :
                     damage *= 2
                 return attackee.attacked( damage )
-        return False
+        return None
 
 class Archer (Troop) :
 
@@ -522,7 +522,7 @@ class Archer (Troop) :
             for struct in [ building for buildingtype in game.buildings for building in buildingtype ] + game.walls :
                 if struct != None and struct.health > 0 and inrange ( struct.position ) :
                     return struct.attacked(damage)
-        return False
+        return None
 
 class Ballon (Troop) :
 
@@ -538,13 +538,13 @@ class Ballon (Troop) :
                 # TODO : add wiz tower
                 attackee = game.isColliding(self, game.buildings[CANNON])
             if attackee == False :
-                return False
+                return None
 
             damage = self.damage
             if game.TimeToRage > 0 :
                 damage *= 2
             return attackee.attacked( damage )
-        return False
+        return None
 
     def move (self, dt) :
         def moveOnce ( ds ) :
