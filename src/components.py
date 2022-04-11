@@ -122,6 +122,8 @@ class Gameplay :
             raise RuntimeError("archer config error")
         if ballon_maxhealth != barbarian_maxhealth or ballon_damage != 2*barbarian_damage or ballon_speed != 2*barbarian_speed :
             raise RuntimeError("ballon config error")
+        if queen_damage >= king_damage :
+            raise RuntimeError("queen config error")
 
         self.spawns = spawns
 

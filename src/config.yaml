@@ -46,8 +46,8 @@ queen:
   maxhealth: 200
   range: 8
   radius: 2
-  damage: 25
-  speed: 2
+  damage: 15
+  speed: 4
   size:
     x: 3
     y: 2
