@@ -43,7 +43,7 @@ class Gameplay :
                 toprint += char + ST.RESET_ALL
             if j == self.size.y // 4 :
                 if self.player != None :
-                    toprint += "player's health: " + str(self.player.health)
+                    toprint += "health: " + str(self.player.health)
             if j == self.size.y // 4 + 1:
                 if self.player != None :
                     toprint += "weapon:"
@@ -187,9 +187,10 @@ class Gameplay :
                 if troop.attack() == None :
                     if troop.move(dt) != True :
                         troop.attack( isStuck=True )
-        for cannon_ in self.buildings[CANNON] :
-            if cannon_.health > 0 :
-                cannon_.shoot()
+        if ite % 2 == 0 :
+            for cannon_ in self.buildings[CANNON] :
+                if cannon_.health > 0 :
+                    cannon_.shoot()
         if ite % 3 == 0 :
             for tower_ in self.buildings[TOWER] :
                 if tower_.health > 0 :
