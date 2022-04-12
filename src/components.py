@@ -200,11 +200,11 @@ class Gameplay :
         self.TimeToRage = max( self.TimeToRage-dt, 0 )
 
         t = time.time()
-        for eagle in self.eagles :
+        for it, eagle in enumerate(self.eagles) :
             if t - eagle["time"] >= 1 :
                 for attackee in eagle["attackees"] :
                     attackee.attacked( eagle["damage"] )
-                self.eagles.remove( eagle )
+                self.eagles.pop( it )
 
         for troop in self.barbarians + self.archers + self.ballons :
             if troop.health > 0 :
@@ -266,7 +266,7 @@ class Building :
 
     def attacked ( self, damage ) :
         self.health -= damage
-        if self.health <= 0 :
+        if self.health <= 0 and self.__class__.__name__ != "Wall" :
             game.calcClosestBuilding()
         self.wasHurt = True
         return game.checkOver()
