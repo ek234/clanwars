@@ -163,7 +163,7 @@ class Gameplay :
             self.player = King(self.spawns[location], UP)
         else :
             self.player = Queen(self.spawns[location], UP)
-        return game.checkOver()
+        return self.checkOver()
 
     def spawn (self, location) :
         if location // 3 == 0 :
@@ -212,7 +212,7 @@ class Gameplay :
         return self.checkOver()
         
     def spell_heal ( self ) :
-        for enemy in [ game.player ] + game.barbarians + game.archers + game.ballons :
+        for enemy in [ self.player ] + self.barbarians + self.archers + self.ballons :
             if enemy != None :
                 if enemy.health > 0 :
                     enemy.health = min( int( enemy.health * 1.5 ) , enemy.maxhealth )
@@ -221,7 +221,7 @@ class Gameplay :
         self.TimeToRage = rage_timecap
 
     def spell_rise ( self ) :
-        for enemy in [ self.player ] + self.barbarians + game.archers + game.ballons :
+        for enemy in [ self.player ] + self.barbarians + self.archers + self.ballons :
             if enemy != None :
                 if enemy.health <= 0 :
                     enemy.health = enemy.maxhealth * 0.1
@@ -666,7 +666,7 @@ class Archer (Troop) :
                     damage *= 2
                 def inrange (pos) :
                     if isStuck :
-                        return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) < 2
+                        return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) < 3
                     return abs(self.position.x-pos.x)+abs(self.position.y-pos.y) <= self.range and direction.x * (pos.x-self.position.x) >= 0 and direction.y * (pos.y-self.position.y) >= 0
 
                 structs = [ building for buildingtype in game.buildings for building in buildingtype ]
