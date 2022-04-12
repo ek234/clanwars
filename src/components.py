@@ -230,7 +230,7 @@ class Gameplay :
         status = INGAME
         if self.player is None :
             status = NOTSTARTED
-        elif all( troop.health <= 0 for troop in self.barbarians + self.archers + self.ballons ) and self.player.health <= 0 :
+        elif ( self.maxnums["Barbarian"] == len(self.barbarians) and self.maxnums["Archer"] == len(self.archers) and self.maxnums["Ballon"] == len(self.ballons) ) and all( troop.health <= 0 for troop in self.barbarians + self.archers + self.ballons ) and self.player.health <= 0 :
             status = LOST       # TODO show lost status only when all troops have been deployed
         elif all( building.health <= 0 for buildingtype in self.buildings for building in buildingtype ) :
             status = WON
