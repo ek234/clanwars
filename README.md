@@ -86,7 +86,6 @@ townhall:
   size:
     x: 4
     y: 3
-
 ```
 
 Central building with no purpose. Looks like an outhouse.
@@ -97,7 +96,6 @@ hut:
   size:
     x: 2
     y: 2
-
 ```
 
 Huts- where the villagers live. They are sleeping rn tho.
