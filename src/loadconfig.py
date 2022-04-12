@@ -39,6 +39,8 @@ queen_damage = config["queen"]["damage"]
 queen_maxhealth = config["queen"]["maxhealth"]
 queen_range = config["queen"]["range"]
 queen_radius = config["queen"]["radius"]
+queen_erange = config["queen"]["erange"]
+queen_eradius = config["queen"]["eradius"]
 queen_size = XY( config["queen"]["size"]["x"], config["queen"]["size"]["y"] )
 
 barbarian_speed = config["barbarian"]["speed"]

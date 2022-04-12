@@ -55,6 +55,8 @@ queen:
   maxhealth: 200
   range: 8
   radius: 2
+  erange: 16
+  eradius: 4
   damage: 15
   speed: 4
   size:
