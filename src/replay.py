@@ -58,7 +58,10 @@ for stageID, stage in enumerate(stages) :
                 game.player.attack()
         elif inp == CHANGE_WEAPON :
             if game.player != None :
-                game.player.switchWeapon()
+                if game.player.__class__.__name__ == "King" :
+                    game.player.switchWeapon()
+                else :
+                    game.player.attack( True )
         elif inp in { UP, LEFT, DOWN, RIGHT } :
             if game.player != None :
                 game.player.move(inp, timePerFrame)
